@@ -2,8 +2,6 @@
 
 import { motion } from "framer-motion";
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -21,10 +19,21 @@ import { Transaction } from "@/types/database";
 
 interface AdvancedChartsProps {
   transactions: Transaction[];
-  month: Date;
 }
 
-export function AdvancedCharts({ transactions, month }: AdvancedChartsProps) {
+interface TooltipPayload {
+  color: string;
+  dataKey: string;
+  value: number;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayload[];
+  label?: string;
+}
+
+export function AdvancedCharts({ transactions }: AdvancedChartsProps) {
   // Preparar dados para o gráfico de earnings (linha)
   const earningsData = [];
   const currentDate = new Date();
@@ -85,12 +94,12 @@ export function AdvancedCharts({ transactions, month }: AdvancedChartsProps) {
     return `R$ ${value.toFixed(1)}K`;
   };
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-gray-800/95 backdrop-blur-sm border border-gray-600 rounded-lg p-3 shadow-lg">
           <p className="text-gray-300 text-sm">{`Mês: ${label}`}</p>
-          {payload.map((entry: any, index: number) => (
+          {payload.map((entry: TooltipPayload, index: number) => (
             <p key={index} className="text-sm font-medium" style={{ color: entry.color }}>
               {`${entry.dataKey}: ${formatCurrency(entry.value)}`}
             </p>

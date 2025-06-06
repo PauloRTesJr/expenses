@@ -1,11 +1,9 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { format, startOfMonth, endOfMonth } from "date-fns";
+import { startOfMonth, endOfMonth } from "date-fns";
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
 import { TransactionForm } from "@/components/forms/transaction-form";
-import { TransactionFilters } from "@/components/dashboard/transaction-filters";
 import { MetricsCards } from "@/components/dashboard/metrics-cards";
 import { AdvancedCharts } from "@/components/dashboard/advanced-charts";
 import { TransactionHistory } from "@/components/dashboard/transaction-history";
@@ -18,10 +16,7 @@ import {
   Search,
   User as UserIcon,
   LogOut,
-  Home,
-  BarChart3,
   Wallet,
-  Settings,
 } from "lucide-react";
 
 interface DashboardClientProps {
@@ -46,7 +41,7 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
     []
   );
   const [isLoading, setIsLoading] = useState(true);
-  const [filters, setFilters] = useState<FilterState>({
+  const [filters] = useState<FilterState>({
     month: new Date(),
     search: "",
     category_id: undefined,
@@ -300,7 +295,6 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
         {/* Advanced Charts */}
         <AdvancedCharts
           transactions={transactions}
-          month={filters.month}
         />
 
         {/* Transaction History */}
