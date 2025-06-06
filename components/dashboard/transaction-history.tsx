@@ -104,16 +104,16 @@ export function TransactionHistory({
       </div>
 
       {/* Table Header */}
-      <div className="hidden md:grid md:grid-cols-5 gap-4 text-sm font-medium text-gray-400 mb-4 px-4">
-        <div>ID</div>
-        <div>Nome</div>
-        <div>Data</div>
-        <div>Valor</div>
-        <div>Status</div>
+      <div className="hidden lg:grid lg:grid-cols-5 gap-4 text-sm font-medium text-gray-400 mb-4 px-4">
+        <div className="min-w-0">ID</div>
+        <div className="min-w-0">Nome</div>
+        <div className="min-w-0">Data</div>
+        <div className="min-w-0 text-right">Valor</div>
+        <div className="min-w-0 text-center">Status</div>
       </div>
 
       {/* Transactions List */}
-      <div className="space-y-2 max-h-96 overflow-y-auto">
+      <div className="space-y-2 max-h-96 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent hover:scrollbar-thumb-gray-500">
         <AnimatePresence>
           {transactions.slice(0, 10).map((transaction, index) => (
             <motion.div
@@ -122,65 +122,102 @@ export function TransactionHistory({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
               transition={{ delay: index * 0.05 }}
-              whileHover={{ scale: 1.01, transition: { duration: 0.2 } }}
-              className="group bg-gray-800/50 hover:bg-gray-800/80 border border-gray-700/50 hover:border-gray-600 rounded-xl p-4 transition-all duration-200 cursor-pointer"
+              whileHover={{ scale: 1.002, transition: { duration: 0.2 } }}
+              className="group bg-gray-800/50 hover:bg-gray-800/80 border border-gray-700/50 hover:border-gray-600 rounded-xl p-4 transition-all duration-200 cursor-pointer overflow-hidden"
             >
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
+              {/* Mobile Layout */}
+              <div className="lg:hidden space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3 min-w-0 flex-1">
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                        transaction.type === "income"
+                          ? "bg-emerald-500/20"
+                          : "bg-red-500/20"
+                      }`}
+                    >
+                      {transaction.type === "income" ? (
+                        <TrendingUp className="w-4 h-4 text-emerald-400" />
+                      ) : (
+                        <TrendingDown className="w-4 h-4 text-red-400" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-white group-hover:text-blue-300 transition-colors truncate">
+                        {transaction.description}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        #{transaction.id.slice(-8)} •{" "}
+                        {formatDate(transaction.date)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right flex-shrink-0 ml-4">
+                    <p
+                      className={`font-bold text-lg ${
+                        transaction.type === "income"
+                          ? "text-emerald-400"
+                          : "text-red-400"
+                      }`}
+                    >
+                      {transaction.type === "income" ? "+" : "-"}
+                      {formatCurrency(Math.abs(transaction.amount))}
+                    </p>
+                    <div className="flex items-center justify-end mt-1">
+                      <div
+                        className={`w-2 h-2 rounded-full mr-2 ${getStatusColor(
+                          transaction.type
+                        )}`}
+                      ></div>
+                      <span className="text-xs text-gray-300">
+                        {getStatusLabel(transaction.type)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Desktop Layout */}
+              <div className="hidden lg:grid lg:grid-cols-5 gap-4 items-center">
                 {/* ID e Avatar */}
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-3 min-w-0">
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
                       transaction.type === "income"
                         ? "bg-emerald-500/20"
                         : "bg-red-500/20"
                     }`}
                   >
                     {transaction.type === "income" ? (
-                      <TrendingUp
-                        className={`w-5 h-5 ${
-                          transaction.type === "income"
-                            ? "text-emerald-400"
-                            : "text-red-400"
-                        }`}
-                      />
+                      <TrendingUp className="w-5 h-5 text-emerald-400" />
                     ) : (
                       <TrendingDown className="w-5 h-5 text-red-400" />
                     )}
                   </div>
-                  <div className="md:hidden">
-                    <span className="text-xs font-mono text-gray-400">
-                      #{transaction.id.slice(-8)}
-                    </span>
-                  </div>
-                  <div className="hidden md:block">
-                    <span className="text-sm font-mono text-gray-400">
-                      #{transaction.id.slice(-8)}
-                    </span>
-                  </div>
+                  <span className="text-sm font-mono text-gray-400 truncate">
+                    #{transaction.id.slice(-8)}
+                  </span>
                 </div>
 
                 {/* Nome/Descrição */}
-                <div>
-                  <p className="font-medium text-white group-hover:text-blue-300 transition-colors">
+                <div className="min-w-0">
+                  <p className="font-medium text-white group-hover:text-blue-300 transition-colors truncate">
                     {transaction.description}
-                  </p>
-                  <p className="text-xs text-gray-400 md:hidden">
-                    {formatDate(transaction.date)}
                   </p>
                 </div>
 
                 {/* Data */}
-                <div className="hidden md:flex items-center text-gray-400">
-                  <Calendar className="w-4 h-4 mr-2" />
-                  <span className="text-sm">
+                <div className="flex items-center text-gray-400 min-w-0">
+                  <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <span className="text-sm truncate">
                     {formatDate(transaction.date)}
                   </span>
                 </div>
 
                 {/* Valor */}
-                <div>
+                <div className="text-right min-w-0">
                   <p
-                    className={`font-bold text-lg ${
+                    className={`font-bold text-lg truncate ${
                       transaction.type === "income"
                         ? "text-emerald-400"
                         : "text-red-400"
@@ -192,18 +229,18 @@ export function TransactionHistory({
                 </div>
 
                 {/* Status */}
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-center min-w-0">
                   <div className="flex items-center">
                     <div
-                      className={`w-2 h-2 rounded-full mr-2 ${getStatusColor(
+                      className={`w-2 h-2 rounded-full mr-2 flex-shrink-0 ${getStatusColor(
                         transaction.type
                       )}`}
                     ></div>
-                    <span className="text-sm text-gray-300">
+                    <span className="text-sm text-gray-300 truncate">
                       {getStatusLabel(transaction.type)}
                     </span>
                   </div>
-                  <button className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-700 rounded transition-all">
+                  <button className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-700 rounded transition-all ml-2 flex-shrink-0">
                     <MoreHorizontal className="w-4 h-4 text-gray-400" />
                   </button>
                 </div>

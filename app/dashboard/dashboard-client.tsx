@@ -205,7 +205,7 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
               </motion.div>
               <div>
                 <h1 className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                  UI Art
+                  Expense
                 </h1>
                 <p className="text-xs text-gray-400">Financial Dashboard</p>
               </div>
@@ -229,10 +229,10 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsModalOpen(true)}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-xl font-medium shadow-lg transition-all duration-200"
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-3 py-2 rounded-xl text-sm font-medium shadow-lg transition-all duration-200 flex items-center space-x-2"
               >
-                <Plus className="w-4 h-4 mr-2" />
-                Nova Transação
+                <Plus className="w-4 h-4" />
+                <span>Nova Transação</span>
               </motion.button>
 
               <div className="flex items-center space-x-2">
@@ -245,8 +245,9 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
 
                 <div className="flex items-center space-x-3 pl-3 border-l border-gray-700">
                   <div className="text-right">
-                    <p className="text-sm font-medium text-white">John Doe</p>
-                    <p className="text-xs text-gray-400">Product Designer</p>
+                    <p className="text-sm font-medium text-white">
+                      {user.email}
+                    </p>
                   </div>
                   <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
                     <UserIcon className="w-5 h-5 text-white" />
@@ -270,20 +271,6 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent mb-2">
-            Painel de Controle Financeiro
-          </h2>
-          <p className="text-gray-400 text-lg">
-            Monitore seus resultados e tome decisões financeiras inteligentes
-          </p>
-        </motion.div>
-
         {/* Metrics Cards */}
         <MetricsCards
           totalIncome={totals.income}
