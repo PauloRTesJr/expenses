@@ -9,14 +9,14 @@ import {
   ResponsiveContainer,
   Area,
   AreaChart,
-  PieChart,
-  Pie,
-  Cell,
 } from "recharts";
-import { Transaction } from "@/types/database";
+import { Transaction, Category } from "@/types/database";
+import { ExpensesDonutChart } from "./expenses-donut-chart";
 
 interface AdvancedChartsProps {
   transactions: Transaction[];
+  categories?: Category[];
+  currentMonth: Date;
 }
 
 interface TooltipPayload {
@@ -31,22 +31,22 @@ interface CustomTooltipProps {
   label?: string;
 }
 
-export function AdvancedCharts({ transactions }: AdvancedChartsProps) {
+export function AdvancedCharts({
+  transactions,
+  categories = [],
+  currentMonth,
+}: AdvancedChartsProps) {
   // Preparar dados para o gráfico de earnings (linha)
   const earningsData = [];
-  const currentDate = new Date();
+  const date = new Date(currentMonth);
 
   for (let i = 11; i >= 0; i--) {
-    const date = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth() - i,
-      1
-    );
+    const monthDate = new Date(date.getFullYear(), date.getMonth() - i, 1);
     const monthTransactions = transactions.filter((t) => {
       const transactionDate = new Date(t.date);
       return (
-        transactionDate.getMonth() === date.getMonth() &&
-        transactionDate.getFullYear() === date.getFullYear()
+        transactionDate.getMonth() === monthDate.getMonth() &&
+        transactionDate.getFullYear() === monthDate.getFullYear()
       );
     });
 
@@ -59,19 +59,12 @@ export function AdvancedCharts({ transactions }: AdvancedChartsProps) {
       .reduce((sum, t) => sum + t.amount, 0);
 
     earningsData.push({
-      month: date.toLocaleDateString("pt-BR", { month: "short" }),
+      month: monthDate.toLocaleDateString("pt-BR", { month: "short" }),
       income: income / 1000, // Converter para milhares
       expense: expense / 1000,
       profit: (income - expense) / 1000,
     });
   }
-
-  // Dados para status de vendas (pie chart)
-  const statusData = [
-    { name: "Ativo", value: 45, color: "#8b5cf6" },
-    { name: "Completo", value: 35, color: "#3b82f6" },
-    { name: "Em espera", value: 20, color: "#ef4444" },
-  ];
 
   const formatCurrency = (value: number) => {
     return `R$ ${value.toFixed(1)}K`;
@@ -173,66 +166,12 @@ export function AdvancedCharts({ transactions }: AdvancedChartsProps) {
         </div>
       </motion.div>
 
-      {/* Status de Vendas - Pie Chart */}
-      <motion.div
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.6, delay: 0.4 }}
-        className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700 rounded-2xl p-6"
-      >
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold text-white">Status de Vendas</h3>
-          <select className="bg-gray-800 border border-gray-600 rounded-lg px-2 py-1 text-xs text-white">
-            <option>Mensal</option>
-          </select>
-        </div>
-
-        <div className="h-48 relative">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={statusData}
-                cx="50%"
-                cy="50%"
-                innerRadius={40}
-                outerRadius={70}
-                paddingAngle={5}
-                dataKey="value"
-              >
-                {statusData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip
-                formatter={(value: number) => [`${value}%`, "Percentual"]}
-                contentStyle={{
-                  backgroundColor: "rgba(31, 41, 55, 0.95)",
-                  border: "1px solid #4b5563",
-                  borderRadius: "8px",
-                  color: "#ffffff",
-                }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="space-y-2 mt-4">
-          {statusData.map((item, index) => (
-            <div key={index} className="flex items-center justify-between">
-              <div className="flex items-center">
-                <div
-                  className="w-3 h-3 rounded-full mr-2"
-                  style={{ backgroundColor: item.color }}
-                ></div>
-                <span className="text-sm text-gray-400">{item.name}</span>
-              </div>
-              <span className="text-sm font-medium text-white">
-                {item.value}%
-              </span>
-            </div>
-          ))}
-        </div>
-      </motion.div>
+      {/* Expenses Donut Chart - Substitui o Status de Vendas */}
+      <ExpensesDonutChart
+        transactions={transactions}
+        categories={categories}
+        currentMonth={currentMonth}
+      />
     </div>
   );
 }
