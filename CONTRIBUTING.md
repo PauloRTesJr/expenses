@@ -12,8 +12,9 @@ This document establishes the guidelines and best practices for contributing to 
 6. [Supabase Practices](#supabase-practices)
 7. [Styling Guidelines](#styling-guidelines)
 8. [Testing Standards](#testing-standards)
-9. [Git Workflow](#git-workflow)
-10. [AI Assistant Guidelines](#ai-assistant-guidelines)
+9. [Architecture Decision Records (ADR)](#architecture-decision-records-adr)
+10. [Git Workflow](#git-workflow)
+11. [AI Assistant Guidelines](#ai-assistant-guidelines)
 
 ## 🎯 Code Standards
 
@@ -815,6 +816,298 @@ describe("/api/transactions", () => {
 });
 ```
 
+## 📚 Architecture Decision Records (ADR)
+
+### ⚠️ MANDATORY ADR CREATION
+
+**Every significant feature or architectural change MUST have an ADR:**
+
+- ✅ **REQUIRED**: New features that affect user experience
+- ✅ **REQUIRED**: Changes to data models or database schema
+- ✅ **REQUIRED**: Integration with external services
+- ✅ **REQUIRED**: Performance optimization implementations
+- ✅ **REQUIRED**: Security-related changes
+- ✅ **REQUIRED**: Breaking changes to existing APIs
+- ✅ **REQUIRED**: New architectural patterns or frameworks
+
+### ADR File Structure
+
+```
+docs/
+├── adr-template.md          # Template for new ADRs
+├── adr-001-auth-system.md   # Authentication implementation
+├── adr-002-data-model.md    # Database design decisions
+├── adr-003-ui-framework.md  # UI/UX framework choices
+└── adr-xxx-feature-name.md  # Your new feature ADR
+```
+
+### ADR Naming Convention
+
+```bash
+# ✅ CORRECT - Sequential numbering with descriptive name
+adr-001-user-authentication.md
+adr-002-transaction-categorization.md
+adr-003-real-time-notifications.md
+adr-004-expense-reporting-system.md
+
+# ❌ INCORRECT - No numbering or vague names
+auth-decision.md
+feature.md
+changes.md
+```
+
+### When to Create an ADR
+
+**Before Implementation:**
+
+- [ ] **Planning Phase**: Create ADR during feature planning
+- [ ] **Design Review**: Get team approval on the ADR
+- [ ] **Implementation**: Reference ADR during development
+- [ ] **Testing**: Validate against ADR success criteria
+- [ ] **Deployment**: Update ADR status to "Accepted"
+
+**Feature Categories Requiring ADRs:**
+
+1. **User Interface Changes**
+   - New pages or major UI components
+   - Navigation structure changes
+   - Responsive design implementations
+   - Accessibility improvements
+
+2. **Data Architecture**
+   - New database tables or relationships
+   - Data validation rules
+   - Migration strategies
+   - Performance optimizations
+
+3. **Integration Features**
+   - Third-party service integrations
+   - API endpoint additions
+   - Authentication/authorization changes
+   - External data synchronization
+
+4. **Technical Infrastructure**
+   - Build process modifications
+   - Deployment strategy changes
+   - Monitoring and logging implementations
+   - Security enhancements
+
+### ADR Creation Process
+
+#### Step 1: Copy Template
+
+```bash
+# Copy the template with sequential number
+cp docs/adr-template.md docs/adr-XXX-your-feature-name.md
+```
+
+#### Step 2: Fill Required Sections
+
+- **Context and Problem Statement**: Why is this needed?
+- **Decision Drivers**: What requirements must be met?
+- **Considered Options**: What alternatives were evaluated?
+- **Decision Outcome**: What was chosen and why?
+- **Implementation Details**: How will it be built?
+
+#### Step 3: Review Process
+
+- [ ] Self-review for completeness
+- [ ] Peer review from team members
+- [ ] Stakeholder approval (if applicable)
+- [ ] Mark status as "Accepted"
+
+#### Step 4: Implementation Tracking
+
+- [ ] Reference ADR in related commits
+- [ ] Update ADR during implementation if needed
+- [ ] Mark as "Implemented" when complete
+
+### ADR Content Requirements
+
+**MANDATORY Sections:**
+
+```markdown
+## Context and Problem Statement
+- Clear business/technical problem description
+- Current state and constraints
+- Success criteria definition
+
+## Considered Options
+- At least 2 alternatives evaluated
+- Pros/cons for each option
+- Implementation effort estimation
+
+## Decision Outcome
+- Clear rationale for chosen solution
+- Trade-offs accepted
+- Risk mitigation strategies
+
+## Implementation Details
+- File structure changes
+- Database schema modifications
+- API changes (if applicable)
+- Testing strategy
+```
+
+**RECOMMENDED Sections:**
+
+```markdown
+## Security Considerations
+- Authentication/authorization impact
+- Data protection measures
+- Vulnerability assessments
+
+## Performance Impact
+- Expected performance characteristics
+- Monitoring requirements
+- Optimization strategies
+
+## Migration Strategy
+- Data migration requirements
+- Rollout plan
+- Rollback procedures
+```
+
+### ADR Status Management
+
+```markdown
+## Status Tracking
+
+- [ ] **Proposed**: Initial draft, under review
+- [ ] **Accepted**: Approved for implementation
+- [ ] **Rejected**: Not approved, document reasons
+- [ ] **Superseded**: Replaced by newer ADR
+- [ ] **Deprecated**: No longer relevant
+- [ ] **Implemented**: Successfully deployed
+```
+
+### Integration with Development Workflow
+
+#### Git Commit Messages
+
+```bash
+# ✅ CORRECT - Reference ADR in commits
+feat: implement transaction filtering (ADR-005)
+fix: resolve date formatting issue in dashboard
+docs: update ADR-007 with implementation details
+
+# ✅ CORRECT - ADR-specific commits
+docs(adr): add ADR-008 for expense categorization
+docs(adr): update ADR-006 status to implemented
+```
+
+#### Pull Request Requirements
+
+```markdown
+## ADR Compliance Checklist
+
+- [ ] ADR created for this feature
+- [ ] ADR number: ADR-XXX
+- [ ] ADR status: [Proposed/Accepted]
+- [ ] Implementation follows ADR decisions
+- [ ] Tests cover ADR success criteria
+```
+
+#### Feature Branch Naming
+
+```bash
+# ✅ CORRECT - Include ADR reference
+feature/adr-005-transaction-filtering
+fix/adr-003-date-formatting-issue
+refactor/adr-007-validation-logic
+```
+
+### ADR Review Guidelines
+
+#### For Reviewers
+
+- [ ] **Business Alignment**: Does it solve the stated problem?
+- [ ] **Technical Feasibility**: Is the solution realistic?
+- [ ] **Consistency**: Follows existing architectural patterns?
+- [ ] **Completeness**: All required sections filled?
+- [ ] **Alternatives**: Were sufficient options considered?
+- [ ] **Risk Assessment**: Are risks properly identified?
+
+#### Common Review Comments
+
+```markdown
+# ✅ GOOD ADR Examples
+- "Clear problem statement with measurable success criteria"
+- "Comprehensive options analysis with trade-offs"
+- "Detailed implementation plan with timeline"
+- "Proper risk assessment and mitigation"
+
+# ❌ ADR Issues to Address
+- "Problem statement too vague"
+- "Only one option considered"
+- "Missing implementation details"
+- "No testing strategy defined"
+- "Security implications not addressed"
+```
+
+### ADR Maintenance
+
+#### Quarterly ADR Review
+
+- [ ] Review all "Accepted" ADRs for implementation status
+- [ ] Update "Implemented" ADRs with actual outcomes
+- [ ] Identify "Deprecated" ADRs for archival
+- [ ] Extract lessons learned for future ADRs
+
+#### ADR Updates
+
+```markdown
+## When to Update an ADR
+- Implementation details change significantly
+- New requirements discovered during development
+- Technical constraints require solution modifications
+- Performance requirements not met as planned
+
+## How to Update
+1. Add entry to Changelog section
+2. Update relevant sections
+3. Keep original decisions for historical context
+4. Add "Updated" status with reasoning
+```
+
+### Tools and Automation
+
+#### ADR Generation Script
+
+```bash
+# Create new ADR with auto-incrementing number
+npm run adr:new "feature-name"
+
+# Validate ADR format
+npm run adr:validate docs/adr-XXX-feature-name.md
+
+# Generate ADR index
+npm run adr:index
+```
+
+#### Integration with Documentation
+
+- ADRs automatically included in project documentation
+- Cross-references with code comments
+- Links to related issues and PRs
+- Integration with architectural diagrams
+
+### Success Metrics for ADRs
+
+#### Quality Indicators
+
+- [ ] **Completeness**: All required sections filled
+- [ ] **Clarity**: Non-technical stakeholders can understand
+- [ ] **Traceability**: Clear links to requirements and implementation
+- [ ] **Maintainability**: Easy to update and reference
+
+#### Process Metrics
+
+- [ ] **Coverage**: 100% of significant features have ADRs
+- [ ] **Timeliness**: ADRs created before implementation starts
+- [ ] **Review Quality**: Average 2+ reviewers per ADR
+- [ ] **Implementation Alignment**: 95%+ adherence to ADR decisions
+
 ## 🔄 Git Workflow
 
 ### Commit Message Convention
@@ -887,7 +1180,7 @@ Descreva brevemente as mudanças implementadas.
 
 ## 🤖 AI Assistant Guidelines
 
-### When an AI is contributing to this project, it must follow these specific guidelines:
+### When an AI is contributing to this project, it must follow these specific guidelines
 
 #### 1. **Mandatory Code Standards**
 
@@ -971,7 +1264,7 @@ Descreva brevemente as mudanças implementadas.
 - Use `cn()` utility for conditional classes
 - Keep classes organized by category (layout, spacing, colors, etc.)
 
-### Exemplo de Implementação Completa:
+### Exemplo de Implementação Completa
 
 ```typescript
 // components/forms/transaction-form.tsx
