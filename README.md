@@ -74,14 +74,15 @@ For detailed testing guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md#mandatory
 
 ## 🎨 Styling Policy
 
-This project follows a **strict styling policy**:
+This project follows a **strict styling policy** with a modern financial dashboard design:
 
 ### ✅ Allowed
 
 - **TailwindCSS** - Only CSS library allowed
 - Tailwind utility classes
-- Custom configurations in `tailwind.config.js`
+- Custom CSS variables defined in `globals.css`
 - Global CSS only in `globals.css` (reset/base styles)
+- Modern CSS features (CSS Grid, Flexbox, CSS Variables)
 
 ### ❌ Forbidden
 
@@ -90,31 +91,136 @@ This project follows a **strict styling policy**:
 - Emotion or other CSS-in-JS
 - Separate CSS files per component
 - UI libraries that conflict with Tailwind
+- Inline styles (except for dynamic values)
+
+### 🎨 Design System - Modern Financial Dashboard
+
+**Color Palette:**
+
+```css
+/* Primary Colors */
+--background-primary: #0f1419;        /* Deep dark blue background */
+--background-secondary: #1a1f2e;      /* Card/section background */
+--background-elevated: #242b3d;       /* Elevated elements */
+
+/* Gradient Colors */
+--gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+--accent-primary: #667eea;            /* Primary purple */
+--accent-secondary: #764ba2;          /* Secondary purple */
+
+/* Status Colors */
+--status-active: #8b5cf6;             /* Active status (45%) */
+--status-complete: #3b82f6;           /* Complete status (35%) */
+--status-pending: #ef4444;            /* Pending status (20%) */
+```
+
+**Design Principles:**
+
+- **Dark Theme First**: Deep blue (#0f1419) primary background
+- **Purple Gradients**: Primary actions use purple gradient (#667eea to #764ba2)
+- **Glass Morphism**: Cards with backdrop blur and transparency
+- **Subtle Shadows**: Layered depth with modern shadow system
+- **Smooth Animations**: 0.3s transitions with easing
+- **Typography**: Clean, readable fonts with proper hierarchy
 
 ### Correct Usage Example
 
 ```tsx
-// ✅ CORRECT - Using only TailwindCSS
-const Button = ({ variant, children }) => {
+// ✅ CORRECT - Using modern financial dashboard design
+const MetricCard = ({ title, value, trend, children }) => {
   return (
-    <button
-      className={cn(
-        "px-4 py-2 rounded-lg font-medium transition-colors",
-        variant === "primary"
-          ? "bg-blue-600 text-white hover:bg-blue-700"
-          : "bg-gray-200 text-gray-900 hover:bg-gray-300"
-      )}
+    <div className="card-modern p-6 animate-fade-in-up">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-bold text-white">{title}</h3>
+        <div className="flex items-center space-x-2">
+          <span className={`text-sm font-medium ${
+            trend > 0 ? 'text-green-400' : 'text-red-400'
+          }`}>
+            {trend > 0 ? '+' : ''}{trend}%
+          </span>
+        </div>
+      </div>
+      
+      <div className="text-2xl font-bold text-white mb-2">
+        {value}
+      </div>
+      
+      {children}
+    </div>
+  );
+};
+
+// ✅ CORRECT - Using CSS custom classes
+const PrimaryButton = ({ children, onClick }) => {
+  return (
+    <button 
+      className="btn-primary focus-ring"
+      onClick={onClick}
     >
       {children}
     </button>
   );
 };
 
+// ✅ CORRECT - Status indicators
+const StatusBadge = ({ status }) => {
+  const statusClasses = {
+    active: 'status-active',
+    complete: 'status-complete', 
+    pending: 'status-pending'
+  };
+  
+  return (
+    <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusClasses[status]}`}>
+      {status}
+    </span>
+  );
+};
+
 // ❌ INCORRECT - CSS-in-JS not allowed
 const StyledButton = styled.button`
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 1rem 2rem;
-  background: blue;
 `;
+```
+
+**Modern Dashboard Components:**
+
+```tsx
+// Metric Cards with gradients and glass morphism
+<div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+  <div className="card-elevated p-6">
+    <div className="flex items-center justify-between">
+      <div className="p-3 bg-gradient-primary rounded-lg">
+        <TrendingUpIcon className="w-6 h-6 text-white" />
+      </div>
+      <span className="text-green-400 text-sm font-medium">+12.5%</span>
+    </div>
+    <h3 className="text-gray-400 text-sm mt-4">Total Revenue</h3>
+    <p className="text-white text-2xl font-bold">R$ 15.685,08</p>
+  </div>
+</div>
+
+// Charts with modern styling
+<div className="chart-container">
+  <ResponsiveContainer width="100%" height={300}>
+    <AreaChart data={data}>
+      <defs>
+        <linearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="5%" stopColor="#667eea" stopOpacity={0.3} />
+          <stop offset="95%" stopColor="#667eea" stopOpacity={0} />
+        </linearGradient>
+      </defs>
+      <Area 
+        type="monotone" 
+        dataKey="value" 
+        stroke="#667eea" 
+        fill="url(#gradient)" 
+        strokeWidth={3}
+      />
+    </AreaChart>
+  </ResponsiveContainer>
+</div>
 ```
 
 For more details, check [CONTRIBUTING.md](CONTRIBUTING.md).
