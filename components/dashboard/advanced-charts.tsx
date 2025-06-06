@@ -10,12 +10,10 @@ import {
   Area,
   AreaChart,
 } from "recharts";
-import { Transaction, Category } from "@/types/database";
-import { ExpensesDonutChart } from "./expenses-donut-chart";
+import { Transaction } from "@/types/database";
 
 interface AdvancedChartsProps {
   transactions: Transaction[];
-  categories?: Category[];
   currentMonth: Date;
 }
 
@@ -33,7 +31,6 @@ interface CustomTooltipProps {
 
 export function AdvancedCharts({
   transactions,
-  categories = [],
   currentMonth,
 }: AdvancedChartsProps) {
   // Preparar dados para o gráfico de earnings (linha)
@@ -91,25 +88,27 @@ export function AdvancedCharts({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-      {/* Earnings Chart - Ocupa 2 colunas */}
+    <div className="mb-8">
+      {/* Earnings Chart - Agora ocupa toda a largura */}
       <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6, delay: 0.2 }}
-        className="lg:col-span-2 bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700 rounded-2xl p-6"
+        className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700 rounded-2xl p-6"
       >
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-xl font-bold text-white mb-1">Resultados</h3>
+            <h3 className="text-xl font-bold text-white mb-1">
+              Resultados Mensais
+            </h3>
             <div className="flex items-center space-x-4 text-sm">
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                <span className="text-gray-400">Receita Atual</span>
+                <span className="text-gray-400">Receitas</span>
               </div>
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-                <span className="text-gray-400">Despesa do Mês Passado</span>
+                <span className="text-gray-400">Despesas</span>
               </div>
             </div>
           </div>
@@ -160,13 +159,6 @@ export function AdvancedCharts({
           </ResponsiveContainer>
         </div>
       </motion.div>
-
-      {/* Expenses Donut Chart - Substitui o Status de Vendas */}
-      <ExpensesDonutChart
-        transactions={transactions}
-        categories={categories}
-        currentMonth={currentMonth}
-      />
     </div>
   );
 }

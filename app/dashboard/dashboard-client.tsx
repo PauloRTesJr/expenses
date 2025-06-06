@@ -7,6 +7,7 @@ import { TransactionForm } from "@/components/forms/transaction-form";
 import { MetricsCards } from "@/components/dashboard/metrics-cards";
 import { AdvancedCharts } from "@/components/dashboard/advanced-charts";
 import { TransactionHistory } from "@/components/dashboard/transaction-history";
+import { AnnualSummary } from "@/components/dashboard/annual-summary";
 import { TransactionFormData, Transaction, Category } from "@/types/database";
 import { createClientSupabase } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -286,7 +287,6 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
         {/* Advanced Charts */}
         <AdvancedCharts
           transactions={transactions}
-          categories={categories}
           currentMonth={filters.month}
         />
 
@@ -294,6 +294,12 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
         <TransactionHistory
           transactions={filteredTransactions}
           isLoading={isLoading}
+        />
+
+        {/* Annual Summary */}
+        <AnnualSummary
+          transactions={transactions}
+          currentMonth={filters.month}
         />
       </main>
 
