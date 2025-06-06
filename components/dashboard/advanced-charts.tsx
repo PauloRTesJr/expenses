@@ -113,11 +113,6 @@ export function AdvancedCharts({
               </div>
             </div>
           </div>
-          <select className="bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white">
-            <option>Anual</option>
-            <option>Mensal</option>
-            <option>Semanal</option>
-          </select>
         </div>
 
         <div className="h-64">

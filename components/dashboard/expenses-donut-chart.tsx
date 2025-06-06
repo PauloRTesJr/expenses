@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import { useMemo } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
-import { ChevronDown } from "lucide-react";
 import { Transaction, Category } from "@/types/database";
 
 interface ExpensesDonutChartProps {
@@ -83,7 +82,7 @@ export function ExpensesDonutChart({
           value: amount,
           percentage,
           color: category?.color || "#6B7280",
-          icon: category?.icon,
+          icon: category?.icon || undefined,
         };
       })
       .sort((a, b) => b.value - a.value) // Ordenar por valor decrescente
@@ -97,7 +96,19 @@ export function ExpensesDonutChart({
     0
   );
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({
+    active,
+    payload,
+  }: {
+    active?: boolean;
+    payload?: Array<{
+      payload: {
+        name: string;
+        value: number;
+        percentage: number;
+      };
+    }>;
+  }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
@@ -131,12 +142,6 @@ export function ExpensesDonutChart({
           <p className="text-sm text-gray-400">
             Total: {formatCurrency(totalExpenses)}
           </p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <select className="bg-gray-800/50 border border-gray-600/50 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all">
-            <option>Mensal</option>
-          </select>
-          <ChevronDown className="w-4 h-4 text-gray-400" />
         </div>
       </div>
 
