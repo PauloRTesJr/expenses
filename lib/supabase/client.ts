@@ -1,5 +1,9 @@
 import { createBrowserClient } from "@supabase/ssr";
-import { Database } from "@/types/database";
+import {
+  Database,
+  TransactionFormData,
+  TransactionShareInput,
+} from "@/types/database";
 
 export const createClientSupabase = () => {
   return createBrowserClient<Database>(
@@ -42,5 +46,165 @@ export const signOut = async () => {
   } catch (error) {
     console.log("signOut catch", error);
     throw new Error("Erro ao fazer logout");
+  }
+};
+
+// Função para buscar usuários para compartilhamento
+export const searchUsers = async (query: string) => {
+  try {
+    if (!query || query.length < 2) {
+      return [];
+    }
+
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return [];
+    }
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, email, full_name")
+      .or(`email.ilike.%${query}%,full_name.ilike.%${query}%`)
+      .neq("id", currentUser.id) // Excluir o usuário atual
+      .limit(10);
+
+    if (error) {
+      console.log("searchUsers error", error);
+      throw error;
+    }
+
+    return data || [];
+  } catch (error) {
+    console.log("searchUsers catch", error);
+    throw new Error("Erro ao buscar usuários");
+  }
+};
+
+// Função para criar transação compartilhada
+export const createSharedTransaction = async (
+  transactionData: TransactionFormData,
+  shares: TransactionShareInput[]
+) => {
+  try {
+    const user = await getCurrentUser();
+    if (!user) {
+      throw new Error("Usuário não autenticado");
+    }
+
+    // Criar a transação principal
+    const { data: transaction, error: transactionError } = await supabase
+      .from("transactions")
+      .insert({
+        description: transactionData.description,
+        amount: transactionData.amount,
+        type: transactionData.type,
+        category_id: transactionData.category_id || null,
+        date: transactionData.date.toISOString().split("T")[0],
+        user_id: user.id,
+        is_installment: transactionData.is_installment,
+        installment_count: transactionData.installment_count,
+        installment_current: transactionData.is_installment ? 1 : null,
+        installment_group_id: transactionData.is_installment
+          ? crypto.randomUUID()
+          : null,
+      })
+      .select()
+      .single();
+
+    if (transactionError) {
+      console.log("createSharedTransaction transactionError", transactionError);
+      throw transactionError;
+    }
+
+    // Se houver compartilhamento, criar os registros de shares
+    if (shares && shares.length > 0) {
+      const shareInserts = shares.map((share) => ({
+        transaction_id: transaction.id,
+        shared_with_user_id: share.userId,
+        share_type: share.shareType,
+        share_value: share.shareValue,
+        status: "pending" as const,
+      }));
+
+      const { error: sharesError } = await supabase
+        .from("transaction_shares")
+        .insert(shareInserts);
+
+      if (sharesError) {
+        console.log("createSharedTransaction sharesError", sharesError);
+        // Se houver erro ao criar os shares, deletar a transação
+        await supabase.from("transactions").delete().eq("id", transaction.id);
+        throw sharesError;
+      }
+    }
+
+    // Se for parcelado, criar as demais parcelas
+    if (
+      transactionData.is_installment &&
+      transactionData.installment_count &&
+      transactionData.installment_count > 1
+    ) {
+      const installments = [];
+      const installmentGroupId = transaction.installment_group_id;
+
+      for (let i = 2; i <= transactionData.installment_count; i++) {
+        const installmentDate = new Date(transactionData.date);
+        installmentDate.setMonth(installmentDate.getMonth() + (i - 1));
+
+        installments.push({
+          description: `${transactionData.description} (${i}/${transactionData.installment_count})`,
+          amount: transactionData.amount,
+          type: transactionData.type,
+          category_id: transactionData.category_id || null,
+          date: installmentDate.toISOString().split("T")[0],
+          user_id: user.id,
+          is_installment: true,
+          installment_count: transactionData.installment_count,
+          installment_current: i,
+          installment_group_id: installmentGroupId,
+        });
+      }
+
+      const { data: installmentTransactions, error: installmentsError } =
+        await supabase.from("transactions").insert(installments).select();
+
+      if (installmentsError) {
+        console.log(
+          "createSharedTransaction installmentsError",
+          installmentsError
+        );
+        throw installmentsError;
+      }
+
+      // Se houver compartilhamento, criar shares para cada parcela
+      if (shares && shares.length > 0 && installmentTransactions) {
+        const allInstallmentShares = installmentTransactions.flatMap((inst) =>
+          shares.map((share) => ({
+            transaction_id: inst.id,
+            shared_with_user_id: share.userId,
+            share_type: share.shareType,
+            share_value: share.shareValue,
+            status: "pending" as const,
+          }))
+        );
+
+        const { error: installmentSharesError } = await supabase
+          .from("transaction_shares")
+          .insert(allInstallmentShares);
+
+        if (installmentSharesError) {
+          console.log(
+            "createSharedTransaction installmentSharesError",
+            installmentSharesError
+          );
+          throw installmentSharesError;
+        }
+      }
+    }
+
+    return transaction;
+  } catch (error) {
+    console.log("createSharedTransaction catch", error);
+    throw new Error("Erro ao criar transação compartilhada");
   }
 };

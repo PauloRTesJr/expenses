@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input, type InputProps } from "@/components/ui/input";
 import { NumericFormat } from "react-number-format";
 import { Modal } from "@/components/ui/modal";
-import { TransactionFormData } from "@/types/database";
+import { UserSelector } from "@/components/forms/user-selector";
+import { ShareConfig } from "@/components/forms/share-config";
+import { TransactionFormData, TransactionShareInput } from "@/types/database";
 
 interface Category {
   id: string;
@@ -16,7 +18,9 @@ interface Category {
 interface TransactionFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: TransactionFormData) => Promise<void>;
+  onSubmit: (
+    data: TransactionFormData & { shares?: TransactionShareInput[] }
+  ) => Promise<void>;
   categories: Category[];
 }
 
@@ -35,6 +39,8 @@ export function TransactionForm({
     is_installment: false,
     installment_count: undefined,
   });
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [shareConfig, setShareConfig] = useState<TransactionShareInput[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -42,7 +48,10 @@ export function TransactionForm({
     setIsLoading(true);
 
     try {
-      await onSubmit(formData);
+      await onSubmit({
+        ...formData,
+        shares: selectedUsers.length > 0 ? shareConfig : undefined,
+      });
       // Reset form
       setFormData({
         description: "",
@@ -53,6 +62,8 @@ export function TransactionForm({
         is_installment: false,
         installment_count: undefined,
       });
+      setSelectedUsers([]);
+      setShareConfig([]);
       onClose();
     } catch (error) {
       console.error("Erro ao salvar transação:", error);
@@ -70,7 +81,7 @@ export function TransactionForm({
       isOpen={isOpen}
       onClose={onClose}
       title="New Income/Expense"
-      size="md"
+      size="lg"
     >
       <div className="card-glass">
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -316,6 +327,19 @@ export function TransactionForm({
               </div>
             </div>
           </div>
+
+          {/* User Selector for Sharing */}
+          <UserSelector
+            selectedUsers={selectedUsers}
+            onUsersChange={setSelectedUsers}
+          />
+
+          {/* Share Configuration */}
+          <ShareConfig
+            selectedUsers={selectedUsers}
+            totalAmount={formData.amount}
+            onShareConfigChange={setShareConfig}
+          />
 
           {/* Installment */}
           <div>

@@ -7,8 +7,16 @@ import { TransactionForm } from "@/components/forms/transaction-form";
 import { MetricsCards } from "@/components/dashboard/metrics-cards";
 import { TransactionHistory } from "@/components/dashboard/transaction-history";
 import { MonthlyAndYearlyCharts } from "@/components/dashboard/monthly-and-yearly-charts";
-import { TransactionFormData, Transaction, Category } from "@/types/database";
-import { createClientSupabase } from "@/lib/supabase/client";
+import {
+  TransactionFormData,
+  Transaction,
+  Category,
+  TransactionShareInput,
+} from "@/types/database";
+import {
+  createClientSupabase,
+  createSharedTransaction,
+} from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
 import {
   Plus,
@@ -133,9 +141,15 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
     };
   }, [filteredTransactions]);
 
-  const handleTransactionSubmit = async (data: TransactionFormData) => {
+  const handleTransactionSubmit = async (
+    data: TransactionFormData & { shares?: TransactionShareInput[] }
+  ) => {
     try {
-      if (data.is_installment && data.installment_count) {
+      if (data.shares && data.shares.length > 0) {
+        // Usar a nova função para transações compartilhadas
+        await createSharedTransaction(data, data.shares);
+      } else if (data.is_installment && data.installment_count) {
+        // Lógica existente para parcelas sem compartilhamento
         const installmentGroupId = crypto.randomUUID();
         const installmentAmount = data.amount / data.installment_count;
 
@@ -164,6 +178,7 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
 
         if (error) throw error;
       } else {
+        // Lógica existente para transações simples sem compartilhamento
         const { error } = await supabase.from("transactions").insert({
           description: data.description,
           amount: data.amount,
