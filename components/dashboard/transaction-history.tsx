@@ -2,14 +2,14 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Transaction } from "@/types/database";
-import { 
-  CreditCard, 
-  TrendingUp, 
-  TrendingDown, 
+import {
+  CreditCard,
+  TrendingUp,
+  TrendingDown,
   Calendar,
   Search,
   Filter,
-  MoreHorizontal 
+  MoreHorizontal,
 } from "lucide-react";
 
 interface TransactionHistoryProps {
@@ -17,7 +17,10 @@ interface TransactionHistoryProps {
   isLoading: boolean;
 }
 
-export function TransactionHistory({ transactions, isLoading }: TransactionHistoryProps) {
+export function TransactionHistory({
+  transactions,
+  isLoading,
+}: TransactionHistoryProps) {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
@@ -26,26 +29,26 @@ export function TransactionHistory({ transactions, isLoading }: TransactionHisto
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
+    return new Date(dateString).toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
     });
   };
 
   const getStatusColor = (type: string) => {
     switch (type) {
-      case 'income':
-        return 'bg-emerald-500';
-      case 'expense':
-        return 'bg-red-500';
+      case "income":
+        return "bg-emerald-500";
+      case "expense":
+        return "bg-red-500";
       default:
-        return 'bg-blue-500';
+        return "bg-blue-500";
     }
   };
 
   const getStatusLabel = (type: string) => {
-    return type === 'income' ? 'Receita' : 'Despesa';
+    return type === "income" ? "Receita" : "Despesa";
   };
 
   if (isLoading) {
@@ -77,10 +80,14 @@ export function TransactionHistory({ transactions, isLoading }: TransactionHisto
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-xl font-bold text-white mb-1">Histórico de Transações</h3>
-          <p className="text-gray-400 text-sm">Últimas movimentações financeiras</p>
+          <h3 className="text-xl font-bold text-white mb-1">
+            Histórico de Transações
+          </h3>
+          <p className="text-gray-400 text-sm">
+            Últimas movimentações financeiras
+          </p>
         </div>
-        
+
         <div className="flex items-center space-x-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -121,22 +128,34 @@ export function TransactionHistory({ transactions, isLoading }: TransactionHisto
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
                 {/* ID e Avatar */}
                 <div className="flex items-center space-x-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    transaction.type === 'income' ? 'bg-emerald-500/20' : 'bg-red-500/20'
-                  }`}>
-                    {transaction.type === 'income' ? (
-                      <TrendingUp className={`w-5 h-5 ${
-                        transaction.type === 'income' ? 'text-emerald-400' : 'text-red-400'
-                      }`} />
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      transaction.type === "income"
+                        ? "bg-emerald-500/20"
+                        : "bg-red-500/20"
+                    }`}
+                  >
+                    {transaction.type === "income" ? (
+                      <TrendingUp
+                        className={`w-5 h-5 ${
+                          transaction.type === "income"
+                            ? "text-emerald-400"
+                            : "text-red-400"
+                        }`}
+                      />
                     ) : (
                       <TrendingDown className="w-5 h-5 text-red-400" />
                     )}
                   </div>
                   <div className="md:hidden">
-                    <span className="text-xs font-mono text-gray-400">#{transaction.id.slice(-8)}</span>
+                    <span className="text-xs font-mono text-gray-400">
+                      #{transaction.id.slice(-8)}
+                    </span>
                   </div>
                   <div className="hidden md:block">
-                    <span className="text-sm font-mono text-gray-400">#{transaction.id.slice(-8)}</span>
+                    <span className="text-sm font-mono text-gray-400">
+                      #{transaction.id.slice(-8)}
+                    </span>
                   </div>
                 </div>
 
@@ -153,23 +172,36 @@ export function TransactionHistory({ transactions, isLoading }: TransactionHisto
                 {/* Data */}
                 <div className="hidden md:flex items-center text-gray-400">
                   <Calendar className="w-4 h-4 mr-2" />
-                  <span className="text-sm">{formatDate(transaction.date)}</span>
+                  <span className="text-sm">
+                    {formatDate(transaction.date)}
+                  </span>
                 </div>
 
                 {/* Valor */}
                 <div>
-                  <p className={`font-bold text-lg ${
-                    transaction.type === 'income' ? 'text-emerald-400' : 'text-red-400'
-                  }`}>
-                    {transaction.type === 'income' ? '+' : '-'}{formatCurrency(Math.abs(transaction.amount))}
+                  <p
+                    className={`font-bold text-lg ${
+                      transaction.type === "income"
+                        ? "text-emerald-400"
+                        : "text-red-400"
+                    }`}
+                  >
+                    {transaction.type === "income" ? "+" : "-"}
+                    {formatCurrency(Math.abs(transaction.amount))}
                   </p>
                 </div>
 
                 {/* Status */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <div className={`w-2 h-2 rounded-full mr-2 ${getStatusColor(transaction.type)}`}></div>
-                    <span className="text-sm text-gray-300">{getStatusLabel(transaction.type)}</span>
+                    <div
+                      className={`w-2 h-2 rounded-full mr-2 ${getStatusColor(
+                        transaction.type
+                      )}`}
+                    ></div>
+                    <span className="text-sm text-gray-300">
+                      {getStatusLabel(transaction.type)}
+                    </span>
                   </div>
                   <button className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-700 rounded transition-all">
                     <MoreHorizontal className="w-4 h-4 text-gray-400" />
@@ -193,8 +225,12 @@ export function TransactionHistory({ transactions, isLoading }: TransactionHisto
       {transactions.length === 0 && !isLoading && (
         <div className="text-center py-12">
           <CreditCard className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-          <p className="text-gray-400 text-lg mb-2">Nenhuma transação encontrada</p>
-          <p className="text-gray-500 text-sm">Adicione sua primeira transação para começar</p>
+          <p className="text-gray-400 text-lg mb-2">
+            Nenhuma transação encontrada
+          </p>
+          <p className="text-gray-500 text-sm">
+            Adicione sua primeira transação para começar
+          </p>
         </div>
       )}
     </motion.div>

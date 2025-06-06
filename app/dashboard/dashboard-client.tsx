@@ -293,9 +293,7 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
         />
 
         {/* Advanced Charts */}
-        <AdvancedCharts
-          transactions={transactions}
-        />
+        <AdvancedCharts transactions={transactions} />
 
         {/* Transaction History */}
         <TransactionHistory

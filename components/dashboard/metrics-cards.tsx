@@ -98,21 +98,31 @@ export function MetricsCards({
               scale: 1.02,
               transition: { duration: 0.2 },
             }}
-            className={`relative overflow-hidden bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border ${card.borderColor} rounded-2xl p-6 group hover:shadow-2xl hover:shadow-${card.color.split('-')[1]}-500/10 transition-all duration-300`}
+            className={`relative overflow-hidden bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border ${
+              card.borderColor
+            } rounded-2xl p-6 group hover:shadow-2xl hover:shadow-${
+              card.color.split("-")[1]
+            }-500/10 transition-all duration-300`}
           >
             {/* Background gradient effect */}
-            <div className={`absolute inset-0 ${card.bgColor} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-            
+            <div
+              className={`absolute inset-0 ${card.bgColor} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
+            />
+
             {/* Content */}
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-4">
-                <div className={`p-3 rounded-xl ${card.bgColor} border ${card.borderColor}`}>
+                <div
+                  className={`p-3 rounded-xl ${card.bgColor} border ${card.borderColor}`}
+                >
                   <Icon className={`w-6 h-6 ${card.color}`} />
                 </div>
-                <div className={`flex items-center text-sm font-medium ${
-                  card.trend === 'up' ? 'text-emerald-400' : 'text-red-400'
-                }`}>
-                  {card.trend === 'up' ? (
+                <div
+                  className={`flex items-center text-sm font-medium ${
+                    card.trend === "up" ? "text-emerald-400" : "text-red-400"
+                  }`}
+                >
+                  {card.trend === "up" ? (
                     <TrendingUp className="w-4 h-4 mr-1" />
                   ) : (
                     <TrendingDown className="w-4 h-4 mr-1" />
@@ -120,7 +130,7 @@ export function MetricsCards({
                   {card.percentage}
                 </div>
               </div>
-              
+
               <div>
                 <p className="text-gray-400 text-sm font-medium mb-1">
                   {card.title}
@@ -133,7 +143,9 @@ export function MetricsCards({
 
             {/* Animated border effect */}
             <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <div className={`absolute inset-0 rounded-2xl border-2 ${card.borderColor} animate-pulse`} />
+              <div
+                className={`absolute inset-0 rounded-2xl border-2 ${card.borderColor} animate-pulse`}
+              />
             </div>
           </motion.div>
         );

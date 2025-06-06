@@ -12,8 +12,6 @@ import {
   PieChart,
   Pie,
   Cell,
-  BarChart,
-  Bar,
 } from "recharts";
 import { Transaction } from "@/types/database";
 
@@ -37,25 +35,31 @@ export function AdvancedCharts({ transactions }: AdvancedChartsProps) {
   // Preparar dados para o gráfico de earnings (linha)
   const earningsData = [];
   const currentDate = new Date();
-  
+
   for (let i = 11; i >= 0; i--) {
-    const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
-    const monthTransactions = transactions.filter(t => {
+    const date = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth() - i,
+      1
+    );
+    const monthTransactions = transactions.filter((t) => {
       const transactionDate = new Date(t.date);
-      return transactionDate.getMonth() === date.getMonth() && 
-             transactionDate.getFullYear() === date.getFullYear();
+      return (
+        transactionDate.getMonth() === date.getMonth() &&
+        transactionDate.getFullYear() === date.getFullYear()
+      );
     });
-    
+
     const income = monthTransactions
-      .filter(t => t.type === 'income')
+      .filter((t) => t.type === "income")
       .reduce((sum, t) => sum + t.amount, 0);
-      
+
     const expense = monthTransactions
-      .filter(t => t.type === 'expense')
+      .filter((t) => t.type === "expense")
       .reduce((sum, t) => sum + t.amount, 0);
-    
+
     earningsData.push({
-      month: date.toLocaleDateString('pt-BR', { month: 'short' }),
+      month: date.toLocaleDateString("pt-BR", { month: "short" }),
       income: income / 1000, // Converter para milhares
       expense: expense / 1000,
       profit: (income - expense) / 1000,
@@ -64,31 +68,10 @@ export function AdvancedCharts({ transactions }: AdvancedChartsProps) {
 
   // Dados para status de vendas (pie chart)
   const statusData = [
-    { name: 'Ativo', value: 45, color: '#8b5cf6' },
-    { name: 'Completo', value: 35, color: '#3b82f6' },
-    { name: 'Em espera', value: 20, color: '#ef4444' },
+    { name: "Ativo", value: 45, color: "#8b5cf6" },
+    { name: "Completo", value: 35, color: "#3b82f6" },
+    { name: "Em espera", value: 20, color: "#ef4444" },
   ];
-
-  // Dados para vendas diárias (bar chart)
-  const dailySalesData = [];
-  for (let i = 6; i >= 0; i--) {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
-    
-    const dayTransactions = transactions.filter(t => {
-      const transactionDate = new Date(t.date);
-      return transactionDate.toDateString() === date.toDateString();
-    });
-    
-    const sales = dayTransactions
-      .filter(t => t.type === 'income')
-      .reduce((sum, t) => sum + t.amount, 0) / 1000;
-    
-    dailySalesData.push({
-      day: date.toLocaleDateString('pt-BR', { weekday: 'short' }),
-      sales: sales,
-    });
-  }
 
   const formatCurrency = (value: number) => {
     return `R$ ${value.toFixed(1)}K`;
@@ -100,7 +83,11 @@ export function AdvancedCharts({ transactions }: AdvancedChartsProps) {
         <div className="bg-gray-800/95 backdrop-blur-sm border border-gray-600 rounded-lg p-3 shadow-lg">
           <p className="text-gray-300 text-sm">{`Mês: ${label}`}</p>
           {payload.map((entry: TooltipPayload, index: number) => (
-            <p key={index} className="text-sm font-medium" style={{ color: entry.color }}>
+            <p
+              key={index}
+              className="text-sm font-medium"
+              style={{ color: entry.color }}
+            >
               {`${entry.dataKey}: ${formatCurrency(entry.value)}`}
             </p>
           ))}
@@ -139,27 +126,29 @@ export function AdvancedCharts({ transactions }: AdvancedChartsProps) {
             <option>Semanal</option>
           </select>
         </div>
-        
+
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={earningsData}>
               <defs>
                 <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                 </linearGradient>
-                <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                <linearGradient
+                  id="expenseGradient"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis 
-                dataKey="month" 
-                stroke="#9ca3af"
-                fontSize={12}
-              />
-              <YAxis 
+              <XAxis dataKey="month" stroke="#9ca3af" fontSize={12} />
+              <YAxis
                 stroke="#9ca3af"
                 fontSize={12}
                 tickFormatter={formatCurrency}
@@ -197,7 +186,7 @@ export function AdvancedCharts({ transactions }: AdvancedChartsProps) {
             <option>Mensal</option>
           </select>
         </div>
-        
+
         <div className="h-48 relative">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -214,94 +203,32 @@ export function AdvancedCharts({ transactions }: AdvancedChartsProps) {
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
-              <Tooltip 
-                formatter={(value: number) => [`${value}%`, 'Percentual']}
+              <Tooltip
+                formatter={(value: number) => [`${value}%`, "Percentual"]}
                 contentStyle={{
-                  backgroundColor: 'rgba(31, 41, 55, 0.95)',
-                  border: '1px solid #4b5563',
-                  borderRadius: '8px',
-                  color: '#ffffff'
+                  backgroundColor: "rgba(31, 41, 55, 0.95)",
+                  border: "1px solid #4b5563",
+                  borderRadius: "8px",
+                  color: "#ffffff",
                 }}
               />
             </PieChart>
           </ResponsiveContainer>
         </div>
-        
+
         <div className="space-y-2 mt-4">
           {statusData.map((item, index) => (
             <div key={index} className="flex items-center justify-between">
               <div className="flex items-center">
-                <div 
-                  className="w-3 h-3 rounded-full mr-2" 
+                <div
+                  className="w-3 h-3 rounded-full mr-2"
                   style={{ backgroundColor: item.color }}
                 ></div>
                 <span className="text-sm text-gray-400">{item.name}</span>
               </div>
-              <span className="text-sm font-medium text-white">{item.value}%</span>
-            </div>
-          ))}
-        </div>
-      </motion.div>
-
-      {/* Vendas Diárias - Bar Chart */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.6 }}
-        className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700 rounded-2xl p-6"
-      >
-        <h3 className="text-lg font-bold text-white mb-4">Vendas Diárias</h3>
-        <div className="mb-4">
-          <p className="text-2xl font-bold text-white">3K</p>
-          <p className="text-sm text-gray-400">Últimos 7 dias</p>
-        </div>
-        
-        <div className="h-32">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={dailySalesData}>
-              <Bar 
-                dataKey="sales" 
-                fill="#8b5cf6"
-                radius={[4, 4, 0, 0]}
-              />
-              <Tooltip 
-                formatter={(value: number) => [formatCurrency(value), 'Vendas']}
-                contentStyle={{
-                  backgroundColor: 'rgba(31, 41, 55, 0.95)',
-                  border: '1px solid #4b5563',
-                  borderRadius: '8px',
-                  color: '#ffffff'
-                }}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </motion.div>
-
-      {/* Análise de Performance */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.8 }}
-        className="lg:col-span-2 bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700 rounded-2xl p-6"
-      >
-        <h3 className="text-lg font-bold text-white mb-4">Análise de Performance</h3>
-        
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { label: 'Transações hoje', value: '12', change: '+2.5%', positive: true },
-            { label: 'Média semanal', value: '84', change: '+12.3%', positive: true },
-            { label: 'Taxa de crescimento', value: '15.8%', change: '+0.8%', positive: true },
-            { label: 'Meta alcançada', value: '78%', change: '-2.1%', positive: false },
-          ].map((stat, index) => (
-            <div key={index} className="text-center">
-              <p className="text-2xl font-bold text-white">{stat.value}</p>
-              <p className="text-sm text-gray-400 mb-1">{stat.label}</p>
-              <p className={`text-xs font-medium ${
-                stat.positive ? 'text-emerald-400' : 'text-red-400'
-              }`}>
-                {stat.change}
-              </p>
+              <span className="text-sm font-medium text-white">
+                {item.value}%
+              </span>
             </div>
           ))}
         </div>
