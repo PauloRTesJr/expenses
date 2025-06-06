@@ -2,6 +2,40 @@
 
 A modern and efficient system for personal income and expense control, developed with Next.js 15, TypeScript, and Supabase.
 
+## ⚠️ MANDATORY UNIT TESTING POLICY
+
+**🚨 CRITICAL REQUIREMENT: ALL code changes and additions MUST include comprehensive unit tests covering ALL conditions and edge cases.**
+
+This project enforces **mandatory unit testing** for:
+
+- ✅ New functions or methods
+- ✅ New React components  
+- ✅ New utility functions
+- ✅ New API routes
+- ✅ Bug fixes
+- ✅ Refactored code
+
+**Minimum Requirements:**
+
+- **95% test coverage** mandatory
+- **All conditions tested** (if/else, try/catch, etc.)
+- **Edge cases covered** (empty data, invalid inputs, errors)
+- **Component variants tested** (all props combinations)
+- **User interactions tested** (clicks, form submissions)
+
+**Enforcement:**
+
+- 🚫 PRs without adequate tests will be **REJECTED**
+- 🚫 CI/CD will **FAIL** without proper test coverage
+- 🚫 Code cannot be deployed without tests
+
+```bash
+# Required before any commit
+npm run test:coverage:check
+```
+
+For detailed testing guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md#mandatory-unit-testing-policy).
+
 ## 🚀 Features
 
 - **📊 Financial Dashboard**: Financial overview with charts and metrics
@@ -379,7 +413,7 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 
 ## 🆘 Suporte
 
-- 📧 Email: suporte@expenses.com
+- 📧 Email: <suporte@expenses.com>
 - 💬 Discord: [Servidor da Comunidade](https://discord.gg/expenses)
 - 📚 Documentação: [Wiki do Projeto](https://github.com/seu-usuario/expenses/wiki)
 

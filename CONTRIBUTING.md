@@ -12,9 +12,10 @@ This document establishes the guidelines and best practices for contributing to 
 6. [Supabase Practices](#supabase-practices)
 7. [Styling Guidelines](#styling-guidelines)
 8. [Testing Standards](#testing-standards)
-9. [Architecture Decision Records (ADR)](#architecture-decision-records-adr)
-10. [Git Workflow](#git-workflow)
-11. [AI Assistant Guidelines](#ai-assistant-guidelines)
+9. [Mandatory Unit Testing Policy](#mandatory-unit-testing-policy)
+10. [Architecture Decision Records (ADR)](#architecture-decision-records-adr)
+11. [Git Workflow](#git-workflow)
+12. [AI Assistant Guidelines](#ai-assistant-guidelines)
 
 ## 🎯 Code Standards
 
@@ -860,6 +861,405 @@ describe("/api/transactions", () => {
 });
 ```
 
+## ⚠️ Mandatory Unit Testing Policy
+
+### 🚨 CRITICAL REQUIREMENT: Unit Tests for All Code Changes
+
+**EVERY code change or addition MUST include comprehensive unit tests that cover ALL conditions and edge cases:**
+
+#### When Unit Tests Are Required
+
+- ✅ **MANDATORY**: New functions or methods
+- ✅ **MANDATORY**: New React components
+- ✅ **MANDATORY**: New utility functions
+- ✅ **MANDATORY**: New validation schemas
+- ✅ **MANDATORY**: New API routes
+- ✅ **MANDATORY**: New hooks
+- ✅ **MANDATORY**: New stores/state management
+- ✅ **MANDATORY**: Bug fixes (test for the bug + fix)
+- ✅ **MANDATORY**: Modified existing functions
+- ✅ **MANDATORY**: Refactored code
+
+#### Test Coverage Requirements
+
+**100% condition coverage is MANDATORY:**
+
+```typescript
+// ✅ REQUIRED - Test ALL conditions
+describe('calculateTransactionTotal', () => {
+  it('calculates positive total for income transactions', () => {
+    const transactions = [
+      { amount: 100, type: 'income' as const },
+      { amount: 200, type: 'income' as const }
+    ]
+    expect(calculateTransactionTotal(transactions)).toBe(300)
+  })
+
+  it('calculates negative total for expense transactions', () => {
+    const transactions = [
+      { amount: 50, type: 'expense' as const },
+      { amount: 75, type: 'expense' as const }
+    ]
+    expect(calculateTransactionTotal(transactions)).toBe(-125)
+  })
+
+  it('calculates mixed total for income and expense transactions', () => {
+    const transactions = [
+      { amount: 100, type: 'income' as const },
+      { amount: 50, type: 'expense' as const }
+    ]
+    expect(calculateTransactionTotal(transactions)).toBe(50)
+  })
+
+  it('returns 0 for empty array', () => {
+    expect(calculateTransactionTotal([])).toBe(0)
+  })
+
+  it('handles zero amounts correctly', () => {
+    const transactions = [
+      { amount: 0, type: 'income' as const },
+      { amount: 0, type: 'expense' as const }
+    ]
+    expect(calculateTransactionTotal(transactions)).toBe(0)
+  })
+
+  it('handles large numbers correctly', () => {
+    const transactions = [
+      { amount: 999999.99, type: 'income' as const }
+    ]
+    expect(calculateTransactionTotal(transactions)).toBe(999999.99)
+  })
+})
+```
+
+#### Component Testing Requirements
+
+**ALL React components MUST have tests for:**
+
+```typescript
+// ✅ REQUIRED - Component test coverage
+describe('TransactionCard', () => {
+  // Required: Rendering tests
+  it('renders with all required props', () => {
+    const transaction = {
+      id: '1',
+      description: 'Test transaction',
+      amount: 100,
+      type: 'income' as const,
+      date: new Date(),
+      categoryId: 'cat-1'
+    }
+    render(<TransactionCard transaction={transaction} />)
+    
+    expect(screen.getByText('Test transaction')).toBeInTheDocument()
+    expect(screen.getByText('R$ 100,00')).toBeInTheDocument()
+  })
+
+  // Required: All variant tests
+  it('displays income transactions with green styling', () => {
+    const transaction = { /* income transaction */ }
+    render(<TransactionCard transaction={transaction} />)
+    
+    expect(screen.getByTestId('amount')).toHaveClass('text-green-600')
+  })
+
+  it('displays expense transactions with red styling', () => {
+    const transaction = { /* expense transaction */ }
+    render(<TransactionCard transaction={transaction} />)
+    
+    expect(screen.getByTestId('amount')).toHaveClass('text-red-600')
+  })
+
+  // Required: Interaction tests
+  it('calls onEdit when edit button is clicked', async () => {
+    const mockOnEdit = jest.fn()
+    const transaction = { /* transaction data */ }
+    
+    render(<TransactionCard transaction={transaction} onEdit={mockOnEdit} />)
+    
+    await user.click(screen.getByRole('button', { name: /edit/i }))
+    expect(mockOnEdit).toHaveBeenCalledWith(transaction.id)
+  })
+
+  // Required: Edge case tests
+  it('handles very long descriptions with truncation', () => {
+    const transaction = {
+      ...baseTransaction,
+      description: 'A'.repeat(100)
+    }
+    render(<TransactionCard transaction={transaction} />)
+    
+    expect(screen.getByText(/A+\.\.\./)).toBeInTheDocument()
+  })
+
+  // Required: Error state tests
+  it('displays error state when transaction data is invalid', () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation()
+    
+    render(<TransactionCard transaction={null} />)
+    
+    expect(screen.getByText(/error loading transaction/i)).toBeInTheDocument()
+    consoleError.mockRestore()
+  })
+})
+```
+
+#### API Route Testing Requirements
+
+**ALL API routes MUST have tests for:**
+
+```typescript
+// ✅ REQUIRED - API route test coverage
+describe('/api/transactions', () => {
+  // Required: Success scenarios
+  it('returns transactions for authenticated user', async () => {
+    const mockUser = { id: 'user-1', email: 'test@example.com' }
+    mockAuth.mockResolvedValue({ user: mockUser })
+    
+    const response = await GET(createMockRequest())
+    const data = await response.json()
+    
+    expect(response.status).toBe(200)
+    expect(data.transactions).toBeDefined()
+  })
+
+  // Required: Authentication tests
+  it('returns 401 for unauthenticated requests', async () => {
+    mockAuth.mockResolvedValue({ user: null })
+    
+    const response = await GET(createMockRequest())
+    
+    expect(response.status).toBe(401)
+  })
+
+  // Required: Validation tests
+  it('returns 400 for invalid request data', async () => {
+    const invalidData = { amount: -100 } // Invalid negative amount
+    
+    const response = await POST(createMockRequest({ body: invalidData }))
+    
+    expect(response.status).toBe(400)
+    expect(await response.json()).toMatchObject({
+      error: expect.stringContaining('validation')
+    })
+  })
+
+  // Required: Database error tests
+  it('returns 500 when database operation fails', async () => {
+    mockSupabase.from.mockImplementation(() => ({
+      select: jest.fn().mockRejectedValue(new Error('Database error'))
+    }))
+    
+    const response = await GET(createMockRequest())
+    
+    expect(response.status).toBe(500)
+  })
+
+  // Required: Rate limiting tests
+  it('returns 429 when rate limit is exceeded', async () => {
+    // Mock rate limiter to return exceeded
+    mockRateLimit.mockResolvedValue({ success: false })
+    
+    const response = await GET(createMockRequest())
+    
+    expect(response.status).toBe(429)
+  })
+})
+```
+
+#### Utility Function Testing Requirements
+
+**ALL utility functions MUST test:**
+
+```typescript
+// ✅ REQUIRED - Utility function comprehensive testing
+describe('formatCurrency', () => {
+  // Required: Standard cases
+  it('formats positive numbers correctly', () => {
+    expect(formatCurrency(1234.56)).toMatch(/R\$\s*1\.234,56/)
+  })
+
+  it('formats negative numbers correctly', () => {
+    expect(formatCurrency(-1234.56)).toMatch(/-R\$\s*1\.234,56/)
+  })
+
+  // Required: Edge cases
+  it('formats zero correctly', () => {
+    expect(formatCurrency(0)).toMatch(/R\$\s*0,00/)
+  })
+
+  it('formats very large numbers', () => {
+    expect(formatCurrency(999999999.99)).toMatch(/R\$\s*999\.999\.999,99/)
+  })
+
+  it('formats very small decimal numbers', () => {
+    expect(formatCurrency(0.01)).toMatch(/R\$\s*0,01/)
+  })
+
+  // Required: Invalid input tests
+  it('handles NaN input', () => {
+    expect(() => formatCurrency(NaN)).toThrow('Invalid number')
+  })
+
+  it('handles Infinity input', () => {
+    expect(() => formatCurrency(Infinity)).toThrow('Invalid number')
+  })
+
+  it('handles undefined input', () => {
+    expect(() => formatCurrency(undefined as any)).toThrow('Invalid input')
+  })
+})
+```
+
+#### Test Quality Requirements
+
+**Tests MUST be:**
+
+- ✅ **Independent**: Each test can run in isolation
+- ✅ **Deterministic**: Same input always produces same output
+- ✅ **Fast**: Complete test suite runs in under 30 seconds
+- ✅ **Descriptive**: Test names clearly describe what is being tested
+- ✅ **Focused**: One assertion per logical test case
+- ✅ **Maintainable**: Easy to update when requirements change
+
+#### Test File Organization
+
+```typescript
+// ✅ REQUIRED - Test file structure
+describe('ComponentName or FunctionName', () => {
+  // Setup section
+  const mockProps = { /* default props */ }
+  let mockFunction: jest.Mock
+
+  beforeEach(() => {
+    mockFunction = jest.fn()
+    // Reset all mocks
+  })
+
+  afterEach(() => {
+    jest.clearAllMocks()
+  })
+
+  // Group related tests
+  describe('rendering', () => {
+    it('renders with default props', () => { /* test */ })
+    it('renders with custom props', () => { /* test */ })
+  })
+
+  describe('user interactions', () => {
+    it('handles click events', () => { /* test */ })
+    it('handles keyboard events', () => { /* test */ })
+  })
+
+  describe('edge cases', () => {
+    it('handles empty data', () => { /* test */ })
+    it('handles invalid data', () => { /* test */ })
+  })
+
+  describe('error scenarios', () => {
+    it('displays error messages', () => { /* test */ })
+    it('recovers from errors', () => { /* test */ })
+  })
+})
+```
+
+#### Pre-commit Test Requirements
+
+**Before ANY commit, you MUST:**
+
+```bash
+# ✅ REQUIRED - Run all tests
+npm test
+
+# ✅ REQUIRED - Check test coverage
+npm run test:coverage
+
+# ✅ REQUIRED - Verify minimum 95% coverage
+npm run test:coverage:check
+```
+
+#### Pull Request Test Requirements
+
+**Every PR MUST include:**
+
+- [ ] **New tests for all new code**
+- [ ] **Updated tests for modified code**
+- [ ] **Test coverage report showing 95%+ coverage**
+- [ ] **All tests passing in CI/CD**
+- [ ] **Performance tests for critical paths**
+- [ ] **Integration tests for API changes**
+
+#### Test Documentation Requirements
+
+```typescript
+// ✅ REQUIRED - Document complex test scenarios
+describe('Complex financial calculations', () => {
+  /**
+   * Test scenario: User has mixed income/expense transactions
+   * across multiple categories with different date ranges.
+   * 
+   * Expected behavior: Calculate accurate totals while 
+   * respecting category filters and date boundaries.
+   * 
+   * Edge cases covered:
+   * - Transactions on boundary dates
+   * - Zero amount transactions
+   * - Deleted categories
+   * - Currency precision handling
+   */
+  it('calculates filtered totals correctly', () => {
+    // Test implementation with detailed comments
+  })
+})
+```
+
+#### Enforcement Policy
+
+**Non-compliance consequences:**
+
+- 🚫 **PR Rejection**: PRs without adequate tests will be rejected
+- 🚫 **Code Review Block**: Code reviews blocked until tests added
+- 🚫 **CI/CD Failure**: Automated checks will fail builds
+- 🚫 **Deployment Prevention**: Untested code cannot be deployed
+
+#### Test Automation
+
+```json
+// package.json scripts for test enforcement
+{
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:coverage:check": "jest --coverage --coverageThreshold='{\"global\":{\"branches\":95,\"functions\":95,\"lines\":95,\"statements\":95}}'",
+    "test:ci": "jest --ci --coverage --watchAll=false",
+    "precommit": "npm run test:coverage:check",
+    "prepush": "npm run test:ci"
+  }
+}
+```
+
+#### Test Examples Repository
+
+**Reference implementations available in:**
+
+- `__tests__/examples/` - Comprehensive test examples
+- `__tests__/patterns/` - Common testing patterns
+- `__tests__/mocks/` - Reusable mock implementations
+- `__tests__/utils/` - Testing utility functions
+
+#### Getting Help with Testing
+
+**When you need testing assistance:**
+
+1. 📚 Check existing test examples in `__tests__/`
+2. 📖 Review testing patterns documentation
+3. 💬 Ask for help in code review comments
+4. 🔧 Use testing utilities and helpers
+5. 📝 Reference Jest and Testing Library docs
+
+**Remember: Good tests are an investment in code quality, maintainability, and team confidence. They are not optional.**
+
 ## 📚 Architecture Decision Records (ADR)
 
 ### ⚠️ MANDATORY ADR CREATION
@@ -1151,341 +1551,3 @@ npm run adr:index
 - [ ] **Timeliness**: ADRs created before implementation starts
 - [ ] **Review Quality**: Average 2+ reviewers per ADR
 - [ ] **Implementation Alignment**: 95%+ adherence to ADR decisions
-
-## 🔄 Git Workflow
-
-### Commit Message Convention
-
-```bash
-# ✅ CORRETO - Conventional Commits
-feat: add transaction filtering by category
-fix: resolve date formatting issue in dashboard
-docs: update API documentation
-style: improve transaction card responsive design
-refactor: extract transaction validation logic
-test: add unit tests for transaction form
-chore: update dependencies
-
-# ✅ CORRETO - Commit body (opcional)
-feat: add transaction filtering by category
-
-- Add category filter dropdown to transactions page
-- Implement filter logic in transaction store
-- Add tests for category filtering functionality
-
-Closes #123
-```
-
-### Branch Naming
-
-```bash
-# ✅ CORRETO - Branch naming convention
-feature/transaction-filtering
-fix/date-formatting-bug
-refactor/transaction-validation
-docs/api-documentation
-chore/dependency-updates
-
-# ❌ INCORRETO - Nomes vagos
-fix-bug
-new-feature
-updates
-```
-
-### Pull Request Template
-
-```markdown
-## 📝 Descrição
-
-Descreva brevemente as mudanças implementadas.
-
-## 🔧 Tipo de mudança
-
-- [ ] Bug fix (correção de bug)
-- [ ] Nova feature (nova funcionalidade)
-- [ ] Breaking change (mudança que quebra compatibilidade)
-- [ ] Documentação
-
-## 🧪 Como foi testado?
-
-- [ ] Testes unitários
-- [ ] Testes de integração
-- [ ] Testes manuais
-- [ ] Não requer testes
-
-## 📋 Checklist
-
-- [ ] Código segue as diretrizes do CONTRIBUTING.md
-- [ ] Realizei uma autoavaliação do código
-- [ ] Comentei código complexo quando necessário
-- [ ] Testes foram adicionados/atualizados
-- [ ] Documentação foi atualizada se necessário
-```
-
-## 🤖 AI Assistant Guidelines
-
-### When an AI is contributing to this project, it must follow these specific guidelines
-
-#### 1. **Mandatory Code Standards**
-
-- ALWAYS use double quotes ("") for strings
-- ALWAYS use console.log with format: `console.log("label", value)`
-- ALWAYS break complex destructuring into multiple lines
-- ALWAYS order imports alphabetically
-- ALWAYS add explicit TypeScript typing
-
-#### 2. **File Structure**
-
-- Components in `components/` with PascalCase
-- Hooks in `hooks/` with `use-` prefix
-- Utilities in `lib/` with kebab-case
-- Pages follow App Router structure
-- ALWAYS create barrel exports (`index.ts`) for component folders
-
-#### 3. **Next.js 15 Patterns**
-
-- Use Server Components by default
-- Add `"use client"` only when necessary
-- Implement metadata for SEO
-- Use `createServerComponentClient` for server components
-- Use `createClientComponentClient` for client components
-
-#### 4. **Supabase Integration**
-
-- ALWAYS add error handling in queries
-- Use RLS (Row Level Security) policies
-- Implement real-time subscriptions when appropriate
-- Validate data with Zod before mutations
-- Use TypeScript types generated from Supabase
-
-#### 5. **Error Handling**
-
-- ALWAYS use try/catch in async functions
-- Log errors with `console.log("functionName error", error)`
-- Return typed response objects
-- Implement fallbacks for network failures
-
-#### 6. **Performance Optimization**
-
-- Use React.memo for heavy components
-- Implement debounce on search inputs
-- Use Suspense and loading states
-- Optimize Supabase queries with specific select
-
-#### 7. **Testing Requirements**
-
-- Create unit tests for utilities
-- Test components with React Testing Library
-- Mock Supabase calls
-- Use `vi.fn()` for mocks
-
-#### 8. **Security Considerations**
-
-- NEVER expose service role keys on client
-- Validate user input
-- Implement rate limiting on API routes
-- Use middleware for authentication
-
-#### 9. **Accessibility**
-
-- Add labels to forms
-- Use semantic HTML
-- Implement keyboard navigation
-- Add ARIA attributes when necessary
-
-#### 10. **Code Organization**
-
-- Group imports by category (external, internal, types)
-- Export components as default
-- Use barrel exports for multiple exports
-- Keep functions small and focused
-
-#### 11. **Styling Standards**
-
-- Use ONLY TailwindCSS for styling
-- Avoid custom CSS outside `globals.css`
-- Prefer composition of utility classes
-- Use `cn()` utility for conditional classes
-- Keep classes organized by category (layout, spacing, colors, etc.)
-
-### Exemplo de Implementação Completa
-
-```typescript
-// components/forms/transaction-form.tsx
-"use client";
-
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
-import { useTransactions } from "@/hooks/use-transactions";
-import { supabase } from "@/lib/supabase/client";
-import { TransactionType } from "@/types";
-
-const TransactionFormSchema = z.object({
-  description: z.string().min(1, "Descrição é obrigatória"),
-  amount: z.number().positive("Valor deve ser positivo"),
-  type: z.enum(["income", "expense"]),
-  categoryId: z.string().min(1, "Categoria é obrigatória"),
-  date: z.date(),
-});
-
-type TransactionFormData = z.infer<typeof TransactionFormSchema>;
-
-interface TransactionFormProps {
-  onSubmit?: (data: TransactionFormData) => void;
-  initialData?: Partial<TransactionFormData>;
-}
-
-export const TransactionForm = ({
-  onSubmit,
-  initialData,
-}: TransactionFormProps) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
-  const { addTransaction } = useTransactions();
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<TransactionFormData>({
-    resolver: zodResolver(TransactionFormSchema),
-    defaultValues: initialData,
-  });
-
-  const handleFormSubmit = async (data: TransactionFormData) => {
-    setIsLoading(true);
-
-    try {
-      const { error } = await supabase.from("transactions").insert([
-        {
-          description: data.description,
-          amount: data.amount,
-          type: data.type,
-          category_id: data.categoryId,
-          date: data.date.toISOString(),
-        },
-      ]);
-
-      if (error) {
-        console.log("transaction creation error", error);
-        throw error;
-      }
-
-      addTransaction(data);
-
-      if (onSubmit) {
-        onSubmit(data);
-      } else {
-        router.push("/dashboard");
-      }
-    } catch (error) {
-      console.log("handleFormSubmit error", error);
-      // Show error toast
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <form
-      onSubmit={handleSubmit(handleFormSubmit)}
-      className="space-y-6 max-w-md mx-auto"
-    >
-      <div className="space-y-2">
-        <label
-          htmlFor="description"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Descrição
-        </label>
-        <Input
-          id="description"
-          {...register("description")}
-          placeholder="Ex: Compra no supermercado"
-          className={errors.description ? "border-red-500" : ""}
-        />
-        {errors.description && (
-          <p className="text-sm text-red-600">{errors.description.message}</p>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <label
-          htmlFor="amount"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Valor
-        </label>
-        <Input
-          id="amount"
-          type="number"
-          step="0.01"
-          {...register("amount", { valueAsNumber: true })}
-          placeholder="0,00"
-          className={errors.amount ? "border-red-500" : ""}
-        />
-        {errors.amount && (
-          <p className="text-sm text-red-600">{errors.amount.message}</p>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <label
-          htmlFor="type"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Tipo
-        </label>
-        <Select
-          id="type"
-          {...register("type")}
-          className={errors.type ? "border-red-500" : ""}
-        >
-          <option value="">Selecione o tipo</option>
-          <option value="income">Receita</option>
-          <option value="expense">Despesa</option>
-        </Select>
-        {errors.type && (
-          <p className="text-sm text-red-600">{errors.type.message}</p>
-        )}
-      </div>
-
-      <Button type="submit" disabled={isLoading} className="w-full">
-        {isLoading ? "Salvando..." : "Salvar Transação"}
-      </Button>
-    </form>
-  );
-};
-```
-
-## 🚨 Critical for AI
-
-**Before implementing any code, an AI MUST:**
-
-1. ✅ Verify all strings use double quotes
-2. ✅ Confirm console.log uses "label", value format
-3. ✅ Ensure complete TypeScript typing
-4. ✅ Validate file structure
-5. ✅ Implement error handling
-6. ✅ Add tests when appropriate
-7. ✅ Follow naming conventions
-8. ✅ Use alphabetically ordered imports
-9. ✅ Implement loading states
-10. ✅ Add accessibility
-
-**NEVER:**
-
-- ❌ Use single quotes for strings
-- ❌ Leave code without typing
-- ❌ Ignore error handling
-- ❌ Create components without typed props
-- ❌ Implement features without tests
-- ❌ Expose sensitive data
-- ❌ Ignore naming conventions
