@@ -18,6 +18,50 @@ This document establishes the guidelines and best practices for contributing to 
 
 ## 🎯 Code Standards
 
+### Language Requirements
+
+**MANDATORY: All code, comments, and documentation must be written in English:**
+
+- ✅ **REQUIRED**: Variable names in English
+- ✅ **REQUIRED**: Function names in English
+- ✅ **REQUIRED**: Comments in English
+- ✅ **REQUIRED**: Documentation in English
+- ✅ **REQUIRED**: Commit messages in English
+- ✅ **REQUIRED**: ADR documents in English
+- ✅ **REQUIRED**: API responses in English
+- ✅ **REQUIRED**: Error messages in English
+- ✅ **REQUIRED**: User interface text in English (unless specifically localized)
+
+**Examples:**
+
+```typescript
+// ✅ CORRECT - English names and comments
+const userBalance = 1000;
+const calculateTotalExpenses = (transactions: Transaction[]) => {
+  // Calculate the sum of all expense transactions
+  return transactions
+    .filter(transaction => transaction.type === "expense")
+    .reduce((total, transaction) => total + transaction.amount, 0);
+};
+
+// ❌ INCORRECT - Non-English names or comments
+const saldoUsuario = 1000;
+const calcularTotalDespesas = (transacoes: Transacao[]) => {
+  // Calcula a soma de todas as transações de despesa
+  return transacoes
+    .filter(transacao => transacao.tipo === "despesa")
+    .reduce((total, transacao) => total + transacao.valor, 0);
+};
+```
+
+**Justification:**
+
+- **Team Consistency**: Ensures all team members can understand the code
+- **Maintainability**: Facilitates code maintenance and reviews
+- **Documentation**: Improves code documentation and knowledge sharing
+- **Industry Standard**: Follows global software development practices
+- **Collaboration**: Enables collaboration with international developers
+
 ### String Formatting
 
 ```typescript
@@ -1445,5 +1489,3 @@ export const TransactionForm = ({
 - ❌ Implement features without tests
 - ❌ Expose sensitive data
 - ❌ Ignore naming conventions
-
----
