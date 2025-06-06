@@ -6,7 +6,17 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:setup": "tsx scripts/setup-db.ts",
+    "db:setup-manual": "tsx scripts/setup-manual.ts",
+    "db:quick": "tsx scripts/quick-setup.ts",
+    "db:reset": "npm run db:setup && npm run migrate",
+    "db:status": "tsx scripts/db-status.ts",
+    "migrate": "tsx scripts/migrate.ts",
+    "migrate:create": "tsx scripts/migrate.ts create",
+    "migrate:status": "tsx scripts/migrate.ts status",
+    "db:dev": "npm run db:quick && echo Database validation complete!",
+    "postinstall": "echo Run npm run db:dev to setup your database"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
@@ -33,9 +43,11 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^16.4.7",
     "eslint": "^9",
     "eslint-config-next": "15.3.3",
     "tailwindcss": "^4",
+    "tsx": "^4.19.4",
     "typescript": "^5"
   }
 }
