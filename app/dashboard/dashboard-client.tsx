@@ -2,15 +2,27 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { format, startOfMonth, endOfMonth } from "date-fns";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { TransactionForm } from "@/components/forms/transaction-form";
 import { TransactionFilters } from "@/components/dashboard/transaction-filters";
-import { TransactionsList } from "@/components/dashboard/transactions-list";
-import { MonthlyCharts } from "@/components/dashboard/monthly-charts";
-import { YearlyCharts } from "@/components/dashboard/yearly-charts";
+import { MetricsCards } from "@/components/dashboard/metrics-cards";
+import { AdvancedCharts } from "@/components/dashboard/advanced-charts";
+import { TransactionHistory } from "@/components/dashboard/transaction-history";
 import { TransactionFormData, Transaction, Category } from "@/types/database";
 import { createClientSupabase } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
+import {
+  Plus,
+  Bell,
+  Search,
+  User as UserIcon,
+  LogOut,
+  Home,
+  BarChart3,
+  Wallet,
+  Settings,
+} from "lucide-react";
 
 interface DashboardClientProps {
   user: User;
@@ -34,7 +46,6 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
     []
   );
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"monthly" | "yearly">("monthly");
   const [filters, setFilters] = useState<FilterState>({
     month: new Date(),
     search: "",
@@ -61,11 +72,10 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
 
       if (error) throw error;
 
-      // Transformar os dados para corresponder ao tipo esperado
       const transformedData: TransactionWithCategory[] = (data || []).map(
         (item) => ({
           ...item,
-          category: item.category || undefined, // Converter null para undefined
+          category: item.category || undefined,
         })
       );
 
@@ -88,22 +98,18 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
       const monthStart = startOfMonth(filters.month);
       const monthEnd = endOfMonth(filters.month);
 
-      // Filtro por mês
       const isInMonth =
         transactionDate >= monthStart && transactionDate <= monthEnd;
 
-      // Filtro por busca
       const matchesSearch =
         filters.search === "" ||
         transaction.description
           .toLowerCase()
           .includes(filters.search.toLowerCase());
 
-      // Filtro por categoria
       const matchesCategory =
         !filters.category_id || transaction.category_id === filters.category_id;
 
-      // Filtro por tipo
       const matchesType =
         filters.type === "all" || transaction.type === filters.type;
 
@@ -111,8 +117,8 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
     });
   }, [transactions, filters]);
 
-  // Calcular totais do mês atual
-  const monthlyTotals = useMemo(() => {
+  // Calcular totais
+  const totals = useMemo(() => {
     const income = filteredTransactions
       .filter((t) => t.type === "income")
       .reduce((sum, t) => sum + t.amount, 0);
@@ -121,24 +127,20 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
       .filter((t) => t.type === "expense")
       .reduce((sum, t) => sum + t.amount, 0);
 
+    // Calcular crescimento mensal (mock data por enquanto)
+    const monthlyGrowth = 15.2;
+
     return {
       income,
       expense,
       balance: income - expense,
+      monthlyGrowth,
     };
   }, [filteredTransactions]);
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(amount);
-  };
 
   const handleTransactionSubmit = async (data: TransactionFormData) => {
     try {
       if (data.is_installment && data.installment_count) {
-        // Para transações parceladas, criar múltiplas transações
         const installmentGroupId = crypto.randomUUID();
         const installmentAmount = data.amount / data.installment_count;
 
@@ -167,7 +169,6 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
 
         if (error) throw error;
       } else {
-        // Transação única
         const { error } = await supabase.from("transactions").insert({
           description: data.description,
           amount: data.amount,
@@ -181,7 +182,6 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
         if (error) throw error;
       }
 
-      // Recarregar transações
       await fetchTransactions();
       setIsModalOpen(false);
     } catch (error) {
@@ -191,246 +191,138 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#121212]">
-      {/* Header */}
-      <header className="bg-[#1e1e1e] shadow-2xl border-b border-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      {/* Header moderno */}
+      <motion.header
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="sticky top-0 z-50 bg-gray-900/80 backdrop-blur-lg border-b border-gray-700/50"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-10 h-10 bg-[#1DB954] rounded-full flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 text-black"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
-                    />
-                  </svg>
-                </div>
-              </div>
-              <div className="ml-4">
-                <h1 className="text-2xl font-bold text-white">Expenses</h1>
+            {/* Logo e título */}
+            <div className="flex items-center space-x-4">
+              <motion.div
+                whileHover={{ scale: 1.05, rotate: 5 }}
+                className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg"
+              >
+                <Wallet className="w-6 h-6 text-white" />
+              </motion.div>
+              <div>
+                <h1 className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                  UI Art
+                </h1>
+                <p className="text-xs text-gray-400">Financial Dashboard</p>
               </div>
             </div>
 
-            <div className="flex items-center space-x-6">
-              <Button
-                onClick={() => setIsModalOpen(true)}
-                className="bg-[#1DB954] hover:bg-[#1ed760] text-black font-semibold"
-              >
-                <svg
-                  className="w-5 h-5 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
-                Nova Transação
-              </Button>
-              <div className="text-sm text-gray-300">
-                Bem-vindo,{" "}
-                <span className="text-white font-medium">{user.email}</span>
+            {/* Search bar */}
+            <div className="hidden md:flex flex-1 max-w-md mx-8">
+              <div className="relative w-full">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input
+                  type="text"
+                  placeholder="Buscar transações..."
+                  className="w-full bg-gray-800/50 border border-gray-600/50 rounded-xl pl-10 pr-4 py-2 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                />
               </div>
-              <form action="/auth/signout" method="post">
-                <button
-                  type="submit"
-                  className="text-sm text-gray-400 hover:text-[#1DB954] transition-colors font-medium"
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center space-x-4">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setIsModalOpen(true)}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-xl font-medium shadow-lg transition-all duration-200"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Nova Transação
+              </motion.button>
+
+              <div className="flex items-center space-x-2">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  className="p-2 bg-gray-800/50 hover:bg-gray-700/50 rounded-xl transition-colors"
                 >
-                  Sair
-                </button>
-              </form>
+                  <Bell className="w-5 h-5 text-gray-400" />
+                </motion.button>
+
+                <div className="flex items-center space-x-3 pl-3 border-l border-gray-700">
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-white">John Doe</p>
+                    <p className="text-xs text-gray-400">Product Designer</p>
+                  </div>
+                  <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                    <UserIcon className="w-5 h-5 text-white" />
+                  </div>
+                </div>
+
+                <form action="/auth/signout" method="post">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    type="submit"
+                    className="p-2 text-gray-400 hover:text-red-400 transition-colors"
+                  >
+                    <LogOut className="w-5 h-5" />
+                  </motion.button>
+                </form>
+              </div>
             </div>
           </div>
         </div>
-      </header>
+      </motion.header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-8 sm:px-6 lg:px-8">
-        <div className="px-4 py-8 sm:px-0">
-          {/* Welcome Section */}
-          <div className="mb-8">
-            <h2 className="text-3xl font-bold text-white mb-2">
-              Painel Financeiro
-            </h2>
-            <p className="text-gray-300 text-lg">
-              Controle total sobre suas receitas e despesas
-            </p>
-          </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Welcome Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent mb-2">
+            Painel de Controle Financeiro
+          </h2>
+          <p className="text-gray-400 text-lg">
+            Monitore seus resultados e tome decisões financeiras inteligentes
+          </p>
+        </motion.div>
 
-          {/* Stats Cards - Atualizados com dados reais */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-[#1e1e1e] rounded-2xl p-6 border border-gray-800">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-400 text-sm font-medium">Receitas</p>
-                  <p className="text-2xl font-bold text-[#1DB954]">
-                    {formatCurrency(monthlyTotals.income)}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {format(filters.month, "MMMM yyyy")}
-                  </p>
-                </div>
-                <div className="w-12 h-12 bg-[#1DB954]/10 rounded-full flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 text-[#1DB954]"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 4v16m8-8H4"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </div>
+        {/* Metrics Cards */}
+        <MetricsCards
+          totalIncome={totals.income}
+          totalExpenses={totals.expense}
+          balance={totals.balance}
+          monthlyGrowth={totals.monthlyGrowth}
+        />
 
-            <div className="bg-[#1e1e1e] rounded-2xl p-6 border border-gray-800">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-400 text-sm font-medium">Despesas</p>
-                  <p className="text-2xl font-bold text-red-400">
-                    {formatCurrency(monthlyTotals.expense)}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {format(filters.month, "MMMM yyyy")}
-                  </p>
-                </div>
-                <div className="w-12 h-12 bg-red-500/10 rounded-full flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 text-red-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M20 12H4"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </div>
+        {/* Advanced Charts */}
+        <AdvancedCharts
+          transactions={transactions}
+          month={filters.month}
+        />
 
-            <div className="bg-[#1e1e1e] rounded-2xl p-6 border border-gray-800">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-400 text-sm font-medium">Saldo</p>
-                  <p
-                    className={`text-2xl font-bold ${
-                      monthlyTotals.balance >= 0
-                        ? "text-blue-400"
-                        : "text-red-400"
-                    }`}
-                  >
-                    {formatCurrency(monthlyTotals.balance)}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {format(filters.month, "MMMM yyyy")}
-                  </p>
-                </div>
-                <div className="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 text-blue-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Filtros */}
-          <TransactionFilters
-            onFilterChange={setFilters}
-            categories={categories}
-          />
-
-          {/* Abas para visualização */}
-          <div className="mb-6">
-            <div className="bg-[#1e1e1e] rounded-xl border border-gray-800 p-1 inline-flex">
-              <button
-                onClick={() => setActiveTab("monthly")}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  activeTab === "monthly"
-                    ? "bg-[#1DB954] text-black"
-                    : "text-gray-300 hover:text-white"
-                }`}
-              >
-                Visão Mensal
-              </button>
-              <button
-                onClick={() => setActiveTab("yearly")}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  activeTab === "yearly"
-                    ? "bg-[#1DB954] text-black"
-                    : "text-gray-300 hover:text-white"
-                }`}
-              >
-                Visão Anual
-              </button>
-            </div>
-          </div>
-
-          {/* Conteúdo baseado na aba ativa */}
-          {activeTab === "monthly" ? (
-            <div className="space-y-6">
-              {/* Lista de Transações */}
-              <TransactionsList
-                transactions={filteredTransactions}
-                isLoading={isLoading}
-              />
-
-              {/* Gráficos Mensais */}
-              <MonthlyCharts
-                transactions={filteredTransactions}
-                month={filters.month}
-              />
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {/* Gráficos Anuais */}
-              <YearlyCharts
-                transactions={transactions}
-                year={filters.month.getFullYear()}
-              />
-            </div>
-          )}
-        </div>
+        {/* Transaction History */}
+        <TransactionHistory
+          transactions={filteredTransactions}
+          isLoading={isLoading}
+        />
       </main>
 
-      {/* Modal de Nova Transação */}
+      {/* Transaction Modal */}
       <TransactionForm
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleTransactionSubmit}
         categories={categories}
       />
+
+      {/* Background Effects */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl"></div>
+      </div>
     </div>
   );
 }
