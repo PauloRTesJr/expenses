@@ -35,17 +35,6 @@ GITHUB_CLIENT_ID=your_github_client_id
 GITHUB_CLIENT_SECRET=your_github_client_secret
 ```
 
-### 2. Mock Values for Development
-
-If you want to test without setting up Supabase immediately, you can use these mock values:
-
-```env
-# Mock Values - FOR DEVELOPMENT ONLY
-NEXT_PUBLIC_SUPABASE_URL=https://projeto-mock.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InByb2pldG8tbW9jayIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzA0MDY3MjAwLCJleHAiOjIwMTk2NDMyMDB9.mock-anon-key
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InByb2pldG8tbW9jayIsInJvbGUiOiJzZXJ2aWNlX3JvbGUiLCJpYXQiOjE3MDQwNjcyMDAsImV4cCI6MjAxOTY0MzIwMH0.mock-service-role-key
-```
-
 **⚠️ IMPORTANT:** These values are for local development only and will not work in production.
 
 ## 🗄️ Supabase Database Configuration
