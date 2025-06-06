@@ -1,0 +1,6 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+ALWAYS use following files as reference [CONTRIBUTING.md](mdc:CONTRIBUTING.md) [SETUP.md](mdc:SETUP.md) [README.md](mdc:README.md)
