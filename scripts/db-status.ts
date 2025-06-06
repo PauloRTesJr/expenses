@@ -54,8 +54,9 @@ interface DatabaseStatus {
  */
 async function checkConnection(): Promise<boolean> {
   try {
+    // Use untyped query for system tables like _migrations
     const { error } = await supabase
-      .from("_migrations")
+      .from("_migrations" as any)
       .select("count")
       .limit(1);
     return !error || error.code !== "PGRST116"; // Table not found is okay
@@ -84,7 +85,7 @@ async function checkTable(tableName: string): Promise<TableInfo> {
     // Check RLS status (simplified check)
     let hasRLS = false;
     try {
-      const { error: rlsError } = await supabase.rpc("exec_sql", {
+      const { error: rlsError } = await (supabase as any).rpc("exec_sql", {
         sql_query: `SELECT row_security FROM pg_tables WHERE tablename = '${tableName}';`,
       });
       hasRLS = !rlsError;
@@ -109,7 +110,7 @@ async function checkTable(tableName: string): Promise<TableInfo> {
 async function checkMigrations() {
   try {
     const { data, error } = await supabase
-      .from("_migrations")
+      .from("_migrations" as any)
       .select("version, executed_at")
       .order("executed_at", { ascending: false });
 
@@ -117,11 +118,14 @@ async function checkMigrations() {
       return { tableExists: false, count: 0 };
     }
 
-    const latest = data && data.length > 0 ? data[0].version : undefined;
+    // Type the data properly since we used 'as any'
+    const typedData =
+      data as Array<{ version: string; executed_at: string }> | null;
+    const latest = typedData && typedData.length > 0 ? typedData[0].version : undefined;
 
     return {
       tableExists: true,
-      count: data?.length || 0,
+      count: typedData?.length || 0,
       latest,
     };
   } catch {
@@ -135,7 +139,7 @@ async function checkMigrations() {
 async function checkFunctions(): Promise<string[]> {
   // First try with exec_sql
   try {
-    const { data, error } = await supabase.rpc("exec_sql", {
+    const { data, error } = await (supabase as any).rpc("exec_sql", {
       sql_query: `
         SELECT routine_name 
         FROM information_schema.routines 
@@ -162,7 +166,7 @@ async function checkFunctions(): Promise<string[]> {
     try {
       if (funcName === "exec_sql") {
         // Test exec_sql with a simple query
-        await supabase.rpc("exec_sql", { sql_query: "SELECT 1;" });
+        await (supabase as any).rpc("exec_sql", { sql_query: "SELECT 1;" });
         functions.push(funcName);
       } else {
         // For other functions, check in pg_proc directly via a simple query
@@ -190,7 +194,7 @@ async function checkFunctions(): Promise<string[]> {
  */
 async function countPolicies(): Promise<number> {
   try {
-    const { data, error } = await supabase.rpc("exec_sql", {
+    const { data, error } = await (supabase as any).rpc("exec_sql", {
       sql_query: `SELECT COUNT(*) as count FROM pg_policies WHERE schemaname = 'public';`,
     });
 

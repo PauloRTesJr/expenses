@@ -1,9 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { format, startOfMonth, endOfMonth } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { TransactionForm } from "@/components/forms/transaction-form";
-import { TransactionFormData } from "@/types/database";
+import { TransactionFilters } from "@/components/dashboard/transaction-filters";
+import { TransactionsList } from "@/components/dashboard/transactions-list";
+import { MonthlyCharts } from "@/components/dashboard/monthly-charts";
+import { YearlyCharts } from "@/components/dashboard/yearly-charts";
+import { TransactionFormData, Transaction, Category } from "@/types/database";
 import { createClientSupabase } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
 
@@ -12,9 +17,123 @@ interface DashboardClientProps {
   categories: Array<{ id: string; name: string; type: "income" | "expense" }>;
 }
 
+interface TransactionWithCategory extends Transaction {
+  category?: Category;
+}
+
+interface FilterState {
+  month: Date;
+  search: string;
+  category_id?: string;
+  type?: "income" | "expense" | "all";
+}
+
 export function DashboardClient({ user, categories }: DashboardClientProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [transactions, setTransactions] = useState<TransactionWithCategory[]>(
+    []
+  );
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"monthly" | "yearly">("monthly");
+  const [filters, setFilters] = useState<FilterState>({
+    month: new Date(),
+    search: "",
+    category_id: undefined,
+    type: "all",
+  });
+
   const supabase = createClientSupabase();
+
+  // Buscar transações do banco de dados
+  const fetchTransactions = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("transactions")
+        .select(
+          `
+          *,
+          category:categories(*)
+        `
+        )
+        .eq("user_id", user.id)
+        .order("date", { ascending: false });
+
+      if (error) throw error;
+
+      // Transformar os dados para corresponder ao tipo esperado
+      const transformedData: TransactionWithCategory[] = (data || []).map(
+        (item) => ({
+          ...item,
+          category: item.category || undefined, // Converter null para undefined
+        })
+      );
+
+      setTransactions(transformedData);
+    } catch (error) {
+      console.error("Erro ao buscar transações:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user.id, supabase]);
+
+  useEffect(() => {
+    fetchTransactions();
+  }, [fetchTransactions]);
+
+  // Filtrar transações baseado nos filtros ativos
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter((transaction) => {
+      const transactionDate = new Date(transaction.date);
+      const monthStart = startOfMonth(filters.month);
+      const monthEnd = endOfMonth(filters.month);
+
+      // Filtro por mês
+      const isInMonth =
+        transactionDate >= monthStart && transactionDate <= monthEnd;
+
+      // Filtro por busca
+      const matchesSearch =
+        filters.search === "" ||
+        transaction.description
+          .toLowerCase()
+          .includes(filters.search.toLowerCase());
+
+      // Filtro por categoria
+      const matchesCategory =
+        !filters.category_id || transaction.category_id === filters.category_id;
+
+      // Filtro por tipo
+      const matchesType =
+        filters.type === "all" || transaction.type === filters.type;
+
+      return isInMonth && matchesSearch && matchesCategory && matchesType;
+    });
+  }, [transactions, filters]);
+
+  // Calcular totais do mês atual
+  const monthlyTotals = useMemo(() => {
+    const income = filteredTransactions
+      .filter((t) => t.type === "income")
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    const expense = filteredTransactions
+      .filter((t) => t.type === "expense")
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    return {
+      income,
+      expense,
+      balance: income - expense,
+    };
+  }, [filteredTransactions]);
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(amount);
+  };
 
   const handleTransactionSubmit = async (data: TransactionFormData) => {
     try {
@@ -62,8 +181,9 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
         if (error) throw error;
       }
 
-      // Recarregar a página para mostrar as novas transações
-      window.location.reload();
+      // Recarregar transações
+      await fetchTransactions();
+      setIsModalOpen(false);
     } catch (error) {
       console.error("Erro ao salvar transação:", error);
       alert("Erro ao salvar transação. Tente novamente.");
@@ -142,56 +262,25 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
           {/* Welcome Section */}
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-white mb-2">
-              Seu Painel Financeiro
+              Painel Financeiro
             </h2>
             <p className="text-gray-300 text-lg">
-              Tenha controle total sobre suas finanças pessoais
+              Controle total sobre suas receitas e despesas
             </p>
           </div>
 
-          {/* Quick Action Button - Destaque */}
-          <div className="mb-8">
-            <div className="bg-gradient-to-r from-[#1DB954]/20 to-[#1ed760]/20 border border-[#1DB954]/30 rounded-2xl p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-xl font-bold text-white mb-2">
-                    Adicionar Nova Transação
-                  </h3>
-                  <p className="text-gray-300">
-                    Registre suas receitas e despesas rapidamente
-                  </p>
-                </div>
-                <Button
-                  onClick={() => setIsModalOpen(true)}
-                  size="lg"
-                  className="bg-[#1DB954] hover:bg-[#1ed760] text-black font-bold shadow-lg"
-                >
-                  <svg
-                    className="w-6 h-6 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 4v16m8-8H4"
-                    />
-                  </svg>
-                  Cadastrar Agora
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Stats Cards */}
+          {/* Stats Cards - Atualizados com dados reais */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-[#1e1e1e] rounded-2xl p-6 border border-gray-800">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-400 text-sm font-medium">Receitas</p>
-                  <p className="text-2xl font-bold text-[#1DB954]">R$ 0,00</p>
+                  <p className="text-2xl font-bold text-[#1DB954]">
+                    {formatCurrency(monthlyTotals.income)}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {format(filters.month, "MMMM yyyy")}
+                  </p>
                 </div>
                 <div className="w-12 h-12 bg-[#1DB954]/10 rounded-full flex items-center justify-center">
                   <svg
@@ -215,7 +304,12 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-400 text-sm font-medium">Despesas</p>
-                  <p className="text-2xl font-bold text-red-400">R$ 0,00</p>
+                  <p className="text-2xl font-bold text-red-400">
+                    {formatCurrency(monthlyTotals.expense)}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {format(filters.month, "MMMM yyyy")}
+                  </p>
                 </div>
                 <div className="w-12 h-12 bg-red-500/10 rounded-full flex items-center justify-center">
                   <svg
@@ -239,7 +333,18 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-400 text-sm font-medium">Saldo</p>
-                  <p className="text-2xl font-bold text-white">R$ 0,00</p>
+                  <p
+                    className={`text-2xl font-bold ${
+                      monthlyTotals.balance >= 0
+                        ? "text-blue-400"
+                        : "text-red-400"
+                    }`}
+                  >
+                    {formatCurrency(monthlyTotals.balance)}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {format(filters.month, "MMMM yyyy")}
+                  </p>
                 </div>
                 <div className="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center">
                   <svg
@@ -260,39 +365,62 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
             </div>
           </div>
 
-          {/* Main Dashboard Content */}
-          <div className="bg-[#1e1e1e] rounded-2xl border border-gray-800 p-8">
-            <div className="text-center">
-              <div className="w-20 h-20 bg-[#1DB954]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg
-                  className="w-10 h-10 text-[#1DB954]"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-3">
-                Dashboard em Construção
-              </h3>
-              <p className="text-gray-300 text-lg mb-8 max-w-md mx-auto">
-                Seu painel financeiro está sendo desenvolvido. Em breve você
-                poderá visualizar suas transações e relatórios aqui.
-              </p>
-              <Button
-                onClick={() => setIsModalOpen(true)}
-                className="bg-[#1DB954] hover:bg-[#1ed760] text-black font-semibold px-8 py-3 rounded-full transition-all duration-200 transform hover:scale-105"
+          {/* Filtros */}
+          <TransactionFilters
+            onFilterChange={setFilters}
+            categories={categories}
+          />
+
+          {/* Abas para visualização */}
+          <div className="mb-6">
+            <div className="bg-[#1e1e1e] rounded-xl border border-gray-800 p-1 inline-flex">
+              <button
+                onClick={() => setActiveTab("monthly")}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  activeTab === "monthly"
+                    ? "bg-[#1DB954] text-black"
+                    : "text-gray-300 hover:text-white"
+                }`}
               >
-                Começar Agora
-              </Button>
+                Visão Mensal
+              </button>
+              <button
+                onClick={() => setActiveTab("yearly")}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  activeTab === "yearly"
+                    ? "bg-[#1DB954] text-black"
+                    : "text-gray-300 hover:text-white"
+                }`}
+              >
+                Visão Anual
+              </button>
             </div>
           </div>
+
+          {/* Conteúdo baseado na aba ativa */}
+          {activeTab === "monthly" ? (
+            <div className="space-y-6">
+              {/* Lista de Transações */}
+              <TransactionsList
+                transactions={filteredTransactions}
+                isLoading={isLoading}
+              />
+
+              {/* Gráficos Mensais */}
+              <MonthlyCharts
+                transactions={filteredTransactions}
+                month={filters.month}
+              />
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Gráficos Anuais */}
+              <YearlyCharts
+                transactions={transactions}
+                year={filters.month.getFullYear()}
+              />
+            </div>
+          )}
         </div>
       </main>
 
