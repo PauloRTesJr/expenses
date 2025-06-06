@@ -5,9 +5,8 @@ import { startOfMonth, endOfMonth } from "date-fns";
 import { motion } from "framer-motion";
 import { TransactionForm } from "@/components/forms/transaction-form";
 import { MetricsCards } from "@/components/dashboard/metrics-cards";
-import { AdvancedCharts } from "@/components/dashboard/advanced-charts";
 import { TransactionHistory } from "@/components/dashboard/transaction-history";
-import { AnnualSummary } from "@/components/dashboard/annual-summary";
+import { MonthlyAndYearlyCharts } from "@/components/dashboard/monthly-and-yearly-charts";
 import { TransactionFormData, Transaction, Category } from "@/types/database";
 import { createClientSupabase } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -284,20 +283,14 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
           }
         />
 
-        {/* Advanced Charts */}
-        <AdvancedCharts
-          transactions={transactions}
-          currentMonth={filters.month}
-        />
-
         {/* Transaction History */}
         <TransactionHistory
           transactions={filteredTransactions}
           isLoading={isLoading}
         />
 
-        {/* Annual Summary */}
-        <AnnualSummary
+        {/* Monthly and Yearly Charts - Side by Side */}
+        <MonthlyAndYearlyCharts
           transactions={transactions}
           currentMonth={filters.month}
         />
