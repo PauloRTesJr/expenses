@@ -1,16 +1,6 @@
 "use client";
 
-import { Transaction } from "@/types/database";
-
-interface AdvancedChartsProps {
-  transactions: Transaction[];
-  currentMonth: Date;
-}
-
-export function AdvancedCharts({
-  transactions,
-  currentMonth,
-}: AdvancedChartsProps) {
-  // Componente removido - funcionalidade movida para MonthlyAndYearlyCharts
+// Componente removido - funcionalidade movida para MonthlyAndYearlyCharts
+export function AdvancedCharts() {
   return null;
 }
