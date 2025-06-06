@@ -41,7 +41,7 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
     []
   );
   const [isLoading, setIsLoading] = useState(true);
-  const [filters] = useState<FilterState>({
+  const [filters, setFilters] = useState<FilterState>({
     month: new Date(),
     search: "",
     category_id: undefined,
@@ -277,6 +277,10 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
           totalExpenses={totals.expense}
           balance={totals.balance}
           monthlyGrowth={totals.monthlyGrowth}
+          currentMonth={filters.month}
+          onMonthChange={(newMonth) =>
+            setFilters((prev) => ({ ...prev, month: newMonth }))
+          }
         />
 
         {/* Advanced Charts */}

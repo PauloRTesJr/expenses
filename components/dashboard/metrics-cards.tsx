@@ -1,13 +1,24 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { TrendingUp, TrendingDown, DollarSign, Target } from "lucide-react";
+import {
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface MetricsCardsProps {
   totalIncome: number;
   totalExpenses: number;
   balance: number;
   monthlyGrowth: number;
+  currentMonth: Date;
+  onMonthChange: (date: Date) => void;
 }
 
 export function MetricsCards({
@@ -15,6 +26,8 @@ export function MetricsCards({
   totalExpenses,
   balance,
   monthlyGrowth,
+  currentMonth,
+  onMonthChange,
 }: MetricsCardsProps) {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -25,6 +38,18 @@ export function MetricsCards({
 
   const formatPercentage = (value: number) => {
     return `${value >= 0 ? "+" : ""}${value.toFixed(1)}%`;
+  };
+
+  const handlePreviousMonth = () => {
+    const newDate = new Date(currentMonth);
+    newDate.setMonth(newDate.getMonth() - 1);
+    onMonthChange(newDate);
+  };
+
+  const handleNextMonth = () => {
+    const newDate = new Date(currentMonth);
+    newDate.setMonth(newDate.getMonth() + 1);
+    onMonthChange(newDate);
   };
 
   const cardVariants = {
@@ -41,6 +66,15 @@ export function MetricsCards({
   };
 
   const cards = [
+    {
+      title: "Período Selecionado",
+      value: format(currentMonth, "MMMM yyyy", { locale: ptBR }),
+      isMonthSelector: true,
+      icon: Calendar,
+      color: "text-blue-400",
+      bgColor: "bg-blue-400/10",
+      borderColor: "border-blue-400/20",
+    },
     {
       title: "Total de Receitas",
       value: formatCurrency(totalIncome),
@@ -70,16 +104,6 @@ export function MetricsCards({
       bgColor: balance >= 0 ? "bg-blue-400/10" : "bg-red-400/10",
       borderColor: balance >= 0 ? "border-blue-400/20" : "border-red-400/20",
       trend: balance >= 0 ? "up" : "down",
-    },
-    {
-      title: "Meta Mensal",
-      value: formatCurrency(5000),
-      percentage: "+8.1%",
-      icon: Target,
-      color: "text-purple-400",
-      bgColor: "bg-purple-400/10",
-      borderColor: "border-purple-400/20",
-      trend: "up",
     },
   ];
 
@@ -111,34 +135,83 @@ export function MetricsCards({
 
             {/* Content */}
             <div className="relative z-10">
-              <div className="flex items-center justify-between mb-4">
-                <div
-                  className={`p-3 rounded-xl ${card.bgColor} border ${card.borderColor}`}
-                >
-                  <Icon className={`w-6 h-6 ${card.color}`} />
-                </div>
-                <div
-                  className={`flex items-center text-sm font-medium ${
-                    card.trend === "up" ? "text-emerald-400" : "text-red-400"
-                  }`}
-                >
-                  {card.trend === "up" ? (
-                    <TrendingUp className="w-4 h-4 mr-1" />
-                  ) : (
-                    <TrendingDown className="w-4 h-4 mr-1" />
-                  )}
-                  {card.percentage}
-                </div>
-              </div>
+              {card.isMonthSelector ? (
+                // Month Selector Card
+                <>
+                  <div className="flex items-center justify-between mb-4">
+                    <div
+                      className={`p-3 rounded-xl ${card.bgColor} border ${card.borderColor}`}
+                    >
+                      <Icon className={`w-6 h-6 ${card.color}`} />
+                    </div>
+                  </div>
 
-              <div>
-                <p className="text-gray-400 text-sm font-medium mb-1">
-                  {card.title}
-                </p>
-                <p className="text-2xl font-bold text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-gray-300 transition-all duration-300">
-                  {card.value}
-                </p>
-              </div>
+                  <div>
+                    <p className="text-gray-400 text-sm font-medium mb-3">
+                      {card.title}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={handlePreviousMonth}
+                        className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 transition-colors"
+                      >
+                        <ChevronLeft className="w-4 h-4 text-gray-400" />
+                      </motion.button>
+
+                      <p className="text-lg font-bold text-white capitalize text-center flex-1">
+                        {card.value}
+                      </p>
+
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={handleNextMonth}
+                        className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 transition-colors"
+                      >
+                        <ChevronRight className="w-4 h-4 text-gray-400" />
+                      </motion.button>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                // Regular metric cards
+                <>
+                  <div className="flex items-center justify-between mb-4">
+                    <div
+                      className={`p-3 rounded-xl ${card.bgColor} border ${card.borderColor}`}
+                    >
+                      <Icon className={`w-6 h-6 ${card.color}`} />
+                    </div>
+                    {card.percentage && (
+                      <div
+                        className={`flex items-center text-sm font-medium ${
+                          card.trend === "up"
+                            ? "text-emerald-400"
+                            : "text-red-400"
+                        }`}
+                      >
+                        {card.trend === "up" ? (
+                          <TrendingUp className="w-4 h-4 mr-1" />
+                        ) : (
+                          <TrendingDown className="w-4 h-4 mr-1" />
+                        )}
+                        {card.percentage}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <p className="text-gray-400 text-sm font-medium mb-1">
+                      {card.title}
+                    </p>
+                    <p className="text-2xl font-bold text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-gray-300 transition-all duration-300">
+                      {card.value}
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Animated border effect */}
