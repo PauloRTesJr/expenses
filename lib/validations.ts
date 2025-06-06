@@ -171,25 +171,7 @@ export const TransactionShareSchema = z.object({
   shareValue: z
     .number()
     .positive("Valor deve ser positivo")
-    .optional()
-    .refine(
-      (value, ctx) => {
-        const shareType = ctx.parent.shareType;
-        if (shareType === "equal") {
-          return value === undefined || value === null;
-        }
-        if (shareType === "percentage") {
-          return value !== undefined && value > 0 && value <= 1;
-        }
-        if (shareType === "fixed_amount") {
-          return value !== undefined && value > 0;
-        }
-        return true;
-      },
-      {
-        message: "Valor inválido para o tipo de compartilhamento selecionado",
-      }
-    ),
+    .optional(),
 });
 
 export const ShareConfigFormSchema = z.object({
@@ -218,6 +200,26 @@ export const ShareConfigFormSchema = z.object({
       },
       {
         message: "A soma das porcentagens não pode exceder 100%",
+      }
+    )
+    .refine(
+      (shares) => {
+        // Validar valores para cada tipo de compartilhamento
+        return shares.every((share) => {
+          if (share.shareType === "equal") {
+            return share.shareValue === undefined || share.shareValue === null;
+          }
+          if (share.shareType === "percentage") {
+            return share.shareValue !== undefined && share.shareValue > 0 && share.shareValue <= 1;
+          }
+          if (share.shareType === "fixed_amount") {
+            return share.shareValue !== undefined && share.shareValue > 0;
+          }
+          return true;
+        });
+      },
+      {
+        message: "Valores de compartilhamento inválidos para os tipos selecionados",
       }
     ),
   notifyUsers: z.boolean().default(true),

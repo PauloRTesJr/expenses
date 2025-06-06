@@ -310,7 +310,7 @@ export function UserSelector({
             {/* Results List */}
             {!error && searchResults.length > 0 && (
               <div className="overflow-y-auto max-h-64">
-                {searchResults.map((user, index) => (
+                {searchResults.map((user) => (
                   <button
                     key={user.id}
                     type="button"

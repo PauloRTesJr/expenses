@@ -1,4 +1,4 @@
-import { Transaction, Profile, TransactionShare } from "./database";
+import { Transaction, Profile, TransactionShare as DatabaseTransactionShare } from "./database";
 
 // Tipos específicos para transações compartilhadas
 export interface TransactionShare {
