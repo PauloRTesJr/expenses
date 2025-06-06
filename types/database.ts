@@ -155,12 +155,61 @@ export interface Database {
           }
         ];
       };
+      transaction_shares: {
+        Row: {
+          id: string;
+          transaction_id: string;
+          shared_with_user_id: string;
+          share_type: "equal" | "percentage" | "fixed_amount";
+          share_value: number | null;
+          status: "pending" | "accepted" | "declined";
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          transaction_id: string;
+          shared_with_user_id: string;
+          share_type: "equal" | "percentage" | "fixed_amount";
+          share_value?: number | null;
+          status?: "pending" | "accepted" | "declined";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          transaction_id?: string;
+          shared_with_user_id?: string;
+          share_type?: "equal" | "percentage" | "fixed_amount";
+          share_value?: number | null;
+          status?: "pending" | "accepted" | "declined";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "transaction_shares_transaction_id_fkey";
+            columns: ["transaction_id"];
+            isOneToOne: false;
+            referencedRelation: "transactions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "transaction_shares_shared_with_user_id_fkey";
+            columns: ["shared_with_user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       profiles: {
         Row: {
           id: string;
           email: string;
           full_name: string | null;
           avatar_url: string | null;
+          notification_shared_transactions: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -169,6 +218,7 @@ export interface Database {
           email: string;
           full_name?: string | null;
           avatar_url?: string | null;
+          notification_shared_transactions?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -177,6 +227,7 @@ export interface Database {
           email?: string;
           full_name?: string | null;
           avatar_url?: string | null;
+          notification_shared_transactions?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -231,6 +282,11 @@ export type Profile = Tables<"profiles">;
 export type ProfileInsert = TablesInsert<"profiles">;
 export type ProfileUpdate = TablesUpdate<"profiles">;
 
+// Tipos específicos para transações compartilhadas
+export type TransactionShare = Tables<"transaction_shares">;
+export type TransactionShareInsert = TablesInsert<"transaction_shares">;
+export type TransactionShareUpdate = TablesUpdate<"transaction_shares">;
+
 // Tipos compostos
 export type TransactionWithCategory = Transaction & {
   categories: Category;
@@ -238,6 +294,13 @@ export type TransactionWithCategory = Transaction & {
 
 export type CategoryWithTransactions = Category & {
   transactions: Transaction[];
+};
+
+export type TransactionWithShares = Transaction & {
+  transaction_shares: (TransactionShare & {
+    profiles: Pick<Profile, "full_name" | "email">;
+  })[];
+  calculated_user_amount?: number; // Valor calculado para o usuário atual
 };
 
 // Tipos para forms e validação
@@ -263,4 +326,35 @@ export type BudgetFormData = {
   amount: number;
   category_id: string;
   period: "monthly" | "weekly" | "yearly";
+};
+
+// Tipos para entrada de dados de compartilhamento
+export type TransactionShareInput = {
+  userId: string;
+  shareType: "equal" | "percentage" | "fixed_amount";
+  shareValue?: number;
+};
+
+// Tipos para liquidação de contas
+export type Settlement = {
+  from_user_id: string;
+  to_user_id: string;
+  amount: number;
+  transactions: string[]; // IDs das transações envolvidas
+};
+
+// Tipos para formulários de compartilhamento
+export type ShareConfigFormData = {
+  shares: TransactionShareInput[];
+  notifyUsers: boolean;
+};
+
+// Tipos para resumo de compartilhamento
+export type ShareSummary = {
+  total_shared_transactions: number;
+  pending_shares: number;
+  accepted_shares: number;
+  declined_shares: number;
+  total_amount_shared: number;
+  total_amount_received: number;
 };

@@ -161,6 +161,134 @@ export const PaginationSchema = z.object({
   sortOrder: z.enum(["asc", "desc"]).default("desc"),
 });
 
+// Validações para transações compartilhadas
+export const TransactionShareSchema = z.object({
+  userId: z.string().uuid("ID do usuário inválido"),
+  shareType: z.enum(["equal", "percentage", "fixed_amount"], {
+    required_error: "Tipo de compartilhamento é obrigatório",
+    invalid_type_error: "Tipo de compartilhamento inválido",
+  }),
+  shareValue: z
+    .number()
+    .positive("Valor deve ser positivo")
+    .optional()
+    .refine(
+      (value, ctx) => {
+        const shareType = ctx.parent.shareType;
+        if (shareType === "equal") {
+          return value === undefined || value === null;
+        }
+        if (shareType === "percentage") {
+          return value !== undefined && value > 0 && value <= 1;
+        }
+        if (shareType === "fixed_amount") {
+          return value !== undefined && value > 0;
+        }
+        return true;
+      },
+      {
+        message: "Valor inválido para o tipo de compartilhamento selecionado",
+      }
+    ),
+});
+
+export const ShareConfigFormSchema = z.object({
+  shares: z
+    .array(TransactionShareSchema)
+    .min(1, "Pelo menos um compartilhamento é obrigatório")
+    .max(10, "Máximo de 10 usuários por compartilhamento")
+    .refine(
+      (shares) => {
+        // Validar que não há usuários duplicados
+        const userIds = shares.map((share) => share.userId);
+        return new Set(userIds).size === userIds.length;
+      },
+      {
+        message:
+          "Não é possível compartilhar com o mesmo usuário mais de uma vez",
+      }
+    )
+    .refine(
+      (shares) => {
+        // Validar que a soma das porcentagens não excede 100%
+        const totalPercentage = shares
+          .filter((share) => share.shareType === "percentage")
+          .reduce((sum, share) => sum + (share.shareValue || 0), 0);
+        return totalPercentage <= 1;
+      },
+      {
+        message: "A soma das porcentagens não pode exceder 100%",
+      }
+    ),
+  notifyUsers: z.boolean().default(true),
+});
+
+export const UpdateShareStatusSchema = z.object({
+  shareId: z.string().uuid("ID do compartilhamento inválido"),
+  status: z.enum(["accepted", "declined"], {
+    required_error: "Status é obrigatório",
+    invalid_type_error: "Status deve ser 'accepted' ou 'declined'",
+  }),
+});
+
+export const SharedTransactionQuerySchema = z.object({
+  status: z.enum(["pending", "accepted", "declined"]).optional(),
+  userId: z.string().uuid().optional(),
+  dateFrom: z
+    .string()
+    .datetime()
+    .optional()
+    .or(z.date().transform((date) => date.toISOString())),
+  dateTo: z
+    .string()
+    .datetime()
+    .optional()
+    .or(z.date().transform((date) => date.toISOString())),
+  page: z.number().int().positive().default(1),
+  limit: z.number().int().positive().max(100).default(20),
+});
+
+export const UserSearchSchema = z.object({
+  query: z
+    .string()
+    .min(2, "Busca deve ter pelo menos 2 caracteres")
+    .max(100, "Busca muito longa"),
+  excludeUsers: z.array(z.string().uuid()).optional(),
+  limit: z.number().int().positive().max(20).default(10),
+});
+
+// Schema para validação de cálculo de compartilhamento
+export const ShareCalculationSchema = z
+  .object({
+    transactionAmount: z
+      .number()
+      .positive("Valor da transação deve ser positivo"),
+    shares: z.array(TransactionShareSchema),
+  })
+  .refine(
+    (data) => {
+      const { transactionAmount, shares } = data;
+
+      // Calcular total de valores fixos
+      const totalFixed = shares
+        .filter((share) => share.shareType === "fixed_amount")
+        .reduce((sum, share) => sum + (share.shareValue || 0), 0);
+
+      // Calcular total de porcentagens
+      const totalPercentage = shares
+        .filter((share) => share.shareType === "percentage")
+        .reduce((sum, share) => sum + (share.shareValue || 0), 0);
+
+      // Verificar se valores fixos + porcentagens não excedem o valor total
+      const percentageAmount = transactionAmount * totalPercentage;
+      return totalFixed + percentageAmount <= transactionAmount;
+    },
+    {
+      message:
+        "A soma dos valores fixos e porcentagens não pode exceder o valor total da transação",
+    }
+  );
+
 // Tipos inferidos dos schemas
 export type TransactionFormData = z.infer<typeof TransactionFormSchema>;
 export type CategoryFormData = z.infer<typeof CategorySchema>;
@@ -172,6 +300,14 @@ export type ForgotPasswordFormData = z.infer<typeof ForgotPasswordSchema>;
 export type ResetPasswordFormData = z.infer<typeof ResetPasswordSchema>;
 export type TransactionFilters = z.infer<typeof TransactionFiltersSchema>;
 export type PaginationParams = z.infer<typeof PaginationSchema>;
+export type TransactionShareFormData = z.infer<typeof TransactionShareSchema>;
+export type ShareConfigFormData = z.infer<typeof ShareConfigFormSchema>;
+export type UpdateShareStatusFormData = z.infer<typeof UpdateShareStatusSchema>;
+export type SharedTransactionQueryData = z.infer<
+  typeof SharedTransactionQuerySchema
+>;
+export type UserSearchFormData = z.infer<typeof UserSearchSchema>;
+export type ShareCalculationFormData = z.infer<typeof ShareCalculationSchema>;
 
 // Utilitários para validação
 export const validateTransaction = (data: unknown) => {
