@@ -53,9 +53,13 @@ export interface Database {
           description: string;
           amount: number;
           type: "income" | "expense";
-          category_id: string;
+          category_id: string | null;
           date: string;
           user_id: string;
+          is_installment: boolean;
+          installment_count: number | null;
+          installment_current: number | null;
+          installment_group_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -64,9 +68,13 @@ export interface Database {
           description: string;
           amount: number;
           type: "income" | "expense";
-          category_id: string;
+          category_id?: string | null;
           date: string;
           user_id: string;
+          is_installment?: boolean;
+          installment_count?: number | null;
+          installment_current?: number | null;
+          installment_group_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -75,9 +83,13 @@ export interface Database {
           description?: string;
           amount?: number;
           type?: "income" | "expense";
-          category_id?: string;
+          category_id?: string | null;
           date?: string;
           user_id?: string;
+          is_installment?: boolean;
+          installment_count?: number | null;
+          installment_current?: number | null;
+          installment_group_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -233,8 +245,10 @@ export type TransactionFormData = {
   description: string;
   amount: number;
   type: "income" | "expense";
-  category_id: string;
+  category_id?: string;
   date: Date;
+  is_installment: boolean;
+  installment_count?: number;
 };
 
 export type CategoryFormData = {
