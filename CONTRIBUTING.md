@@ -930,19 +930,72 @@ const HighContrastText = ({ children, variant = 'primary' }: TextProps) => {
 };
 ```
 
-### Color Rules
+### Design System & Color Rules
 
-- **Always use dark backgrounds** (`#0f1419`, `#1a1f2e`, `#242b3d`)
-- **Always use purple gradients** (`#667eea` to `#764ba2`) for primary actions
-- **Always maintain text contrast** (white/gray on dark backgrounds)
-- **Never use bright colors** except for status indicators and gradients
-- **Use elevation through background lightness** (darker = lower, lighter = higher)
-- **Status colors must match pie chart** (purple 45%, blue 35%, red 20%)
+- **Background**: Use a dark-to-purple/blue radial gradient background for the app shell.
+- **Cards**: Use glassmorphism (semi-transparent, blurred) with deep blue/purple tones and a strong box-shadow for elevation.
+- **Borders**: Always apply rounded corners (border-radius >= 0.75rem) and subtle borders with accent colors.
+- **Buttons**: Use a purple gradient (`#667eea` → `#764ba2`) for primary actions, with hover/active animations and shadow.
+- **Inputs**: Use glassmorphism backgrounds, clear focus rings, and high contrast text.
+- **Status Colors**:
+  - Income/Success: `#10b981` (green)
+  - Expense/Error: `#ef4444` (red)
+  - Info/Complete: `#3b82f6` (blue)
+  - Active: `#8b5cf6` (purple)
+- **Typography**: Headings in white, secondary text in gray (`#b8bcc8`), muted in `#6b7280`.
+- **Contrast**: Always maintain high contrast for accessibility.
+- **Shadow/Elevation**: Use strong, soft box-shadows for cards and modals.
+- **Animation**: Use smooth transitions (`0.3s` ease-out), micro-interactions, and respect reduced motion preferences.
 
-### Animation Guidelines
+#### Example: Card & Button
 
-- **Use smooth transitions** (0.3s duration with ease-out timing)
-- **Respect reduced motion preferences** (check `prefers-reduced-motion`)
-- **Micro-interactions only** (hover states, focus rings, loading states)
-- **Stagger animations** for lists (0.1s delay between items)
-- **Use transform over position changes** for better performance
+```tsx
+<div className="card-modern card-elevated glass-morphism p-6">
+  <h2 className="text-white text-xl font-semibold mb-2">Total Income</h2>
+  <p className="text-3xl font-bold text-white">R$ 15,685.08</p>
+  <span className="status-active px-3 py-1 rounded-full text-xs font-medium ml-2">+12.5%</span>
+  <button className="btn-primary btn-gradient mt-4 w-full">New Transaction</button>
+</div>
+```
+
+#### Example: Input
+
+```tsx
+<input className="input-modern input-glass w-full" placeholder="Search..." />
+```
+
+#### Example: Status Badge
+
+```tsx
+<span className="status-complete">Complete</span>
+<span className="status-pending">Pending</span>
+```
+
+#### Example: Gradient Button
+
+```tsx
+<button className="btn-primary bg-gradient-primary hover:scale-105 transition-transform">Nova Transação</button>
+```
+
+#### Design Tokens (CSS)
+
+```css
+:root {
+  --background-primary: #0f1419;
+  --background-secondary: #1a1f2e;
+  --background-elevated: #242b3d;
+  --background-glass: rgba(36, 43, 61, 0.8);
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --accent-primary: #667eea;
+  --accent-success: #10b981;
+  --accent-error: #ef4444;
+  --accent-info: #3b82f6;
+  --status-active: #8b5cf6;
+  --status-complete: #3b82f6;
+  --status-pending: #ef4444;
+  --border-primary: #374151;
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+}
+```
+
+**All new UI must strictly follow these design tokens and utility classes.**

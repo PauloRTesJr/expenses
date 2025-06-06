@@ -55,16 +55,16 @@ export function Modal({
 
       {/* Modal */}
       <div
-        className={`relative bg-[#1e1e1e] rounded-2xl border border-gray-800 shadow-2xl w-full ${sizeClasses[size]} max-h-[90vh] overflow-hidden`}
+        className={`relative bg-[#242b3d] backdrop-blur-2xl bg-opacity-90 rounded-2xl shadow-2xl w-full ${sizeClasses[size]} max-h-[90vh] overflow-hidden`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-800">
+        <div className="flex items-center justify-between p-6 border-b border-gray-700/50">
           <h2 className="text-xl font-bold text-white">{title}</h2>
           <Button
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="p-2 hover:bg-gray-800 rounded-full"
+            className="p-2 hover:bg-gray-700/40 rounded-full text-gray-300 hover:text-white transition-colors"
           >
             <svg
               className="w-5 h-5"
@@ -83,7 +83,7 @@ export function Modal({
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)] bg-gradient-to-br from-[#242b3d]/80 to-[#1a1f2e]/80">
           {children}
         </div>
       </div>

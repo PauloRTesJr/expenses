@@ -8,11 +8,11 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen bg-[#121212] flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-[#232949] via-[#764ba2] to-[#0f1419]">
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-[#1DB954] text-black rounded-full mb-6 shadow-2xl">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-primary text-white rounded-full mb-6 shadow-2xl">
             <svg
               className="w-10 h-10"
               fill="none"
@@ -28,27 +28,27 @@ export default function LoginPage() {
             </svg>
           </div>
           <h1 className="text-4xl font-bold text-white mb-3">
-            Bem-vindo de volta
+            Welcome back
           </h1>
           <p className="text-gray-300 text-lg">
-            Entre na sua conta para continuar gerenciando suas finanças
+            Sign in to your account to continue managing your finances
           </p>
         </div>
 
         {/* Login Form Card */}
-        <div className="bg-[#1e1e1e] rounded-2xl shadow-2xl p-8 border border-gray-800">
+        <div className="card-glass">
           <LoginForm />
         </div>
 
         {/* Footer */}
         <div className="text-center mt-8">
           <p className="text-gray-300">
-            Não tem uma conta?{" "}
+            Don&apos;t have an account?{' '}
             <a
               href="/register"
-              className="text-[#1DB954] hover:text-[#1ed760] font-medium transition-colors"
+              className="text-[#8b5cf6] hover:text-[#764ba2] font-medium transition-colors"
             >
-              Criar conta
+              Create account
             </a>
           </p>
         </div>

@@ -1,16 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ComponentType } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input, type InputProps } from "@/components/ui/input";
+import { NumericFormat } from 'react-number-format';
 import { Modal } from "@/components/ui/modal";
 import { TransactionFormData } from "@/types/database";
+
+interface Category {
+  id: string;
+  name: string;
+  type: "income" | "expense";
+}
 
 interface TransactionFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: TransactionFormData) => Promise<void>;
-  categories: Array<{ id: string; name: string; type: "income" | "expense" }>;
+  categories: Category[];
 }
 
 export function TransactionForm({
@@ -62,14 +69,15 @@ export function TransactionForm({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Nova Receita/Despesa"
+      title="New Income/Expense"
       size="md"
     >
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Tipo de Transação */}
+      <div className="card-glass">
+        <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Transaction Type */}
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-3">
-            Tipo de Transação
+            Transaction Type
           </label>
           <div className="grid grid-cols-2 gap-3">
             <button
@@ -81,10 +89,10 @@ export function TransactionForm({
                   category_id: "",
                 }))
               }
-              className={`p-4 rounded-lg border-2 transition-all duration-200 ${
+              className={`p-4 rounded-xl transition-all duration-200 ${
                 formData.type === "income"
-                  ? "border-[#1DB954] bg-[#1DB954]/10 text-[#1DB954]"
-                  : "border-gray-700 bg-[#2a2a2a] text-gray-400 hover:border-gray-600"
+                  ? "bg-gradient-to-br from-green-500/20 to-emerald-500/10 border-2 border-green-500/30 text-green-400 shadow-lg shadow-green-500/10"
+                  : "bg-[#242b3d]/60 border-2 border-gray-700 text-gray-400 hover:border-gray-600 hover:bg-[#2a334e]/60"
               }`}
             >
               <div className="flex items-center justify-center space-x-2">
@@ -101,7 +109,7 @@ export function TransactionForm({
                     d="M12 4v16m8-8H4"
                   />
                 </svg>
-                <span className="font-medium">Receita</span>
+                <span className="font-medium">Income</span>
               </div>
             </button>
             <button
@@ -113,10 +121,10 @@ export function TransactionForm({
                   category_id: "",
                 }))
               }
-              className={`p-4 rounded-lg border-2 transition-all duration-200 ${
+              className={`p-4 rounded-xl transition-all duration-200 ${
                 formData.type === "expense"
-                  ? "border-red-500 bg-red-500/10 text-red-500"
-                  : "border-gray-700 bg-[#2a2a2a] text-gray-400 hover:border-gray-600"
+                  ? "bg-gradient-to-br from-red-500/20 to-rose-500/10 border-2 border-red-500/30 text-red-400 shadow-lg shadow-red-500/10"
+                  : "bg-[#242b3d]/60 border-2 border-gray-700 text-gray-400 hover:border-gray-600 hover:bg-[#2a334e]/60"
               }`}
             >
               <div className="flex items-center justify-center space-x-2">
@@ -130,191 +138,236 @@ export function TransactionForm({
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M20 12H4"
+                    d="M12 20V4m8 8H4"
                   />
                 </svg>
-                <span className="font-medium">Despesa</span>
+                <span className="font-medium">Expense</span>
               </div>
             </button>
           </div>
         </div>
 
-        {/* Nome/Descrição */}
+        {/* Description */}
         <div>
           <label
             htmlFor="description"
             className="block text-sm font-medium text-gray-300 mb-2"
           >
-            Nome da Transação *
+            Description *
           </label>
           <Input
             id="description"
             type="text"
-            placeholder="Ex: Salário, Supermercado, Combustível..."
             value={formData.description}
             onChange={(e) =>
               setFormData((prev) => ({ ...prev, description: e.target.value }))
             }
+            placeholder="e.g. Salary, Supermarket"
+            className="input-glass"
             required
           />
         </div>
 
-        {/* Valor */}
+        {/* Amount */}
         <div>
           <label
             htmlFor="amount"
             className="block text-sm font-medium text-gray-300 mb-2"
           >
-            Valor *
+            Amount *
           </label>
           <div className="relative">
-            <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
-              R$
-            </span>
-            <Input
+            <div className="absolute inset-y-0 left-0 flex items-center justify-center w-12 pointer-events-none text-gray-400">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+              </svg>
+            </div>
+            <NumericFormat
               id="amount"
-              type="number"
-              step="0.01"
-              min="0"
-              placeholder="0,00"
-              className="pl-12"
+              thousandSeparator="."
+              decimalSeparator=","
+              prefix="R$ "
+              decimalScale={2}
+              fixedDecimalScale
+              allowNegative={false}
+              placeholder="R$ 0,00"
+              className="input-glass pl-20"
               value={formData.amount || ""}
-              onChange={(e) =>
+              onValueChange={(values) => {
+                const { floatValue } = values;
                 setFormData((prev) => ({
                   ...prev,
-                  amount: parseFloat(e.target.value) || 0,
-                }))
-              }
+                  amount: floatValue || 0,
+                }));
+              }}
+              customInput={Input as ComponentType<InputProps>} // Cast to any to satisfy NumericFormatProps
               required
             />
           </div>
         </div>
 
-        {/* Data */}
+        {/* Date */}
         <div>
           <label
             htmlFor="date"
             className="block text-sm font-medium text-gray-300 mb-2"
           >
-            Data *
+            Date *
           </label>
-          <Input
-            id="date"
-            type="date"
-            value={formData.date.toISOString().split("T")[0]}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                date: new Date(e.target.value),
-              }))
-            }
-            required
-          />
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 flex items-center justify-center w-12 pointer-events-none text-gray-400">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <Input
+              id="date"
+              type="date"
+              value={formData.date.toISOString().split("T")[0]}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  date: new Date(e.target.value),
+                }))
+              }
+              className="input-glass pl-16"
+              required
+            />
+          </div>
         </div>
 
-        {/* Categoria */}
+        {/* Category */}
         <div>
           <label
             htmlFor="category"
             className="block text-sm font-medium text-gray-300 mb-2"
           >
-            Categoria
+            Category
           </label>
-          <select
-            id="category"
-            value={formData.category_id || ""}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                category_id: e.target.value || undefined,
-              }))
-            }
-            className="flex h-12 w-full rounded-lg border border-gray-700 bg-[#2a2a2a] px-4 py-3 text-white transition-all duration-200 focus:border-[#1DB954] focus:outline-none focus:ring-2 focus:ring-[#1DB954] focus:ring-offset-2 focus:ring-offset-[#121212]"
-          >
-            <option value="">Selecionar categoria (opcional)</option>
-            {filteredCategories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Parcelamento */}
-        <div>
-          <label className="flex items-center space-x-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={formData.is_installment}
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 flex items-center justify-center w-12 pointer-events-none text-gray-400">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+            </div>
+            <select
+              id="category"
+              value={formData.category_id || ""}
               onChange={(e) =>
                 setFormData((prev) => ({
                   ...prev,
-                  is_installment: e.target.checked,
-                  installment_count: e.target.checked ? 2 : undefined,
+                  category_id: e.target.value || undefined,
                 }))
               }
-              className="w-5 h-5 text-[#1DB954] bg-[#2a2a2a] border-gray-700 rounded focus:ring-[#1DB954] focus:ring-2"
-            />
-            <span className="text-sm font-medium text-gray-300">
-              Transação parcelada
+              className="input-glass h-12 pl-16 pr-10 py-3 w-full appearance-none"
+            >
+              <option value="">Select category (optional)</option>
+              {filteredCategories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-400">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 20 20" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 8l4 4 4-4" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        {/* Installment */}
+        <div>
+          <label className="flex items-center space-x-3 cursor-pointer group">
+            <div className={`relative w-5 h-5 rounded-md border-2 transition-all duration-200 ${formData.is_installment 
+              ? 'border-green-500 bg-green-500/20' 
+              : 'border-gray-600 bg-[#242b3d]/60 group-hover:border-gray-500'}`}>
+              <input
+                type="checkbox"
+                checked={formData.is_installment}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    is_installment: e.target.checked,
+                    installment_count: e.target.checked ? 2 : undefined,
+                  }))
+                }
+                className="absolute opacity-0 w-full h-full cursor-pointer"
+              />
+              {formData.is_installment && (
+                <svg className="w-4 h-4 text-green-400 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+            </div>
+            <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">
+              Installment transaction
             </span>
           </label>
         </div>
 
-        {/* Número de Parcelas (aparece apenas se parcelado) */}
+        {/* Number of Installments (only appears if installment) */}
         {formData.is_installment && (
-          <div>
-            <label
-              htmlFor="installments"
-              className="block text-sm font-medium text-gray-300 mb-2"
-            >
-              Número de Parcelas *
+          <div className="mt-3 pl-8">
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Number of installments
             </label>
-            <Input
-              id="installments"
-              type="number"
-              min="2"
-              max="120"
-              placeholder="Ex: 12"
-              value={formData.installment_count || ""}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  installment_count: parseInt(e.target.value) || undefined,
-                }))
-              }
-              required={formData.is_installment}
-            />
-            <p className="text-xs text-gray-400 mt-1">
-              {formData.installment_count &&
-                formData.amount > 0 &&
-                `Valor por parcela: R$ ${(
-                  formData.amount / formData.installment_count
-                ).toFixed(2)}`}
-            </p>
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+              </div>
+              <Input
+                type="number"
+                min="2"
+                max="24"
+                value={formData.installment_count || 2}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    installment_count: parseInt(e.target.value) || 2,
+                  }))
+                }
+                className="input-glass pl-16"
+              />
+            </div>
           </div>
         )}
 
-        {/* Botões */}
-        <div className="flex justify-end space-x-3 pt-4">
+        {/* Buttons */}
+        <div className="flex justify-end space-x-3 pt-6 border-t border-gray-700/50 mt-6">
           <Button
             type="button"
-            variant="secondary"
+            variant="ghost"
             onClick={onClose}
             disabled={isLoading}
+            className="px-6 py-2.5 text-gray-300 hover:text-white hover:bg-gray-700/50 transition-colors rounded-lg"
           >
-            Cancelar
+            Cancel
           </Button>
           <Button
             type="submit"
             disabled={
               isLoading || !formData.description || formData.amount <= 0
             }
+            className="btn-primary btn-gradient text-white px-6 py-2.5 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? "Salvando..." : "Salvar Transação"}
+            {isLoading ? (
+              <div className="flex items-center space-x-2">
+                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Saving...</span>
+              </div>
+            ) : (
+              <span>Save Transaction</span>
+            )}
           </Button>
         </div>
       </form>
-    </Modal>
+    </div>
+  </Modal>
   );
 }

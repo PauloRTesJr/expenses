@@ -35,13 +35,13 @@ export const LoginForm = () => {
       if (authError) {
         console.log("login error", authError);
         
-        // Mapear erros específicos do Supabase
+        // Map Supabase specific errors
         if (authError.message.includes("Invalid login credentials")) {
-          setError("Email ou senha incorretos");
+          setError("Incorrect email or password");
         } else if (authError.message.includes("Email not confirmed")) {
-          setError("Por favor, confirme seu email antes de fazer login");
+          setError("Please confirm your email before logging in");
         } else {
-          setError("Erro ao fazer login. Tente novamente.");
+          setError("Login error. Please try again.");
         }
         return;
       }
@@ -54,7 +54,7 @@ export const LoginForm = () => {
       }
     } catch (error) {
       console.log("login catch", error);
-      setError("Erro interno. Tente novamente mais tarde.");
+      setError("Internal error. Please try again later.");
     } finally {
       setIsLoading(false);
     }
@@ -64,7 +64,7 @@ export const LoginForm = () => {
     <form onSubmit={handleSubmit(handleLogin)} className="space-y-6">
       {/* Error Message */}
       {error && (
-        <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg text-sm">
+        <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg text-sm" role="alert" aria-live="assertive">
           {error}
         </div>
       )}
@@ -78,16 +78,19 @@ export const LoginForm = () => {
           id="email"
           type="email"
           {...register("email")}
-          placeholder="seu@email.com"
+          placeholder="your@email.com"
           className={`bg-[#2a2a2a] border-gray-700 text-white placeholder-gray-400 transition-all duration-200 ${
             errors.email
               ? "border-red-500 focus:border-red-500 focus:ring-red-500"
               : "focus:border-[#1DB954] focus:ring-[#1DB954]"
           }`}
+          autoComplete="email"
+          aria-invalid={!!errors.email}
+          aria-describedby={errors.email ? "email-error" : undefined}
           disabled={isLoading}
         />
         {errors.email && (
-          <p className="text-sm text-red-400">
+          <p className="text-sm text-red-400" id="email-error" role="alert">
             {errors.email.message}
           </p>
         )}
@@ -96,7 +99,7 @@ export const LoginForm = () => {
       {/* Password Field */}
       <div className="space-y-2">
         <label htmlFor="password" className="block text-sm font-medium text-white">
-          Senha
+          Password
         </label>
         <div className="relative">
           <Input
@@ -109,12 +112,16 @@ export const LoginForm = () => {
                 ? "border-red-500 focus:border-red-500 focus:ring-red-500"
                 : "focus:border-[#1DB954] focus:ring-[#1DB954]"
             }`}
+            autoComplete="current-password"
+            aria-invalid={!!errors.password}
+            aria-describedby={errors.password ? "password-error" : undefined}
             disabled={isLoading}
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-300 transition-colors"
+            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-[#1DB954]"
+            aria-label={showPassword ? "Hide password" : "Show password"}
             disabled={isLoading}
           >
             {showPassword ? (
@@ -125,7 +132,7 @@ export const LoginForm = () => {
           </button>
         </div>
         {errors.password && (
-          <p className="text-sm text-red-400">
+          <p className="text-sm text-red-400" id="password-error" role="alert">
             {errors.password.message}
           </p>
         )}
@@ -137,7 +144,7 @@ export const LoginForm = () => {
           href="/forgot-password"
           className="text-sm text-[#1DB954] hover:text-[#1ed760] transition-colors"
         >
-          Esqueceu a senha?
+          Forgot your password?
         </a>
       </div>
 
@@ -146,14 +153,15 @@ export const LoginForm = () => {
         type="submit"
         disabled={isLoading}
         className="w-full bg-[#1DB954] hover:bg-[#1ed760] text-black font-semibold rounded-full py-3 transition-all duration-200 transform hover:scale-105 active:scale-95 focus:ring-2 focus:ring-[#1DB954] focus:ring-offset-2 focus:ring-offset-[#121212]"
+        aria-busy={isLoading}
       >
         {isLoading ? (
           <div className="flex items-center justify-center">
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            Entrando...
+            Signing in...
           </div>
         ) : (
-          "Entrar"
+          "Sign In"
         )}
       </Button>
 
@@ -163,7 +171,7 @@ export const LoginForm = () => {
           <div className="w-full border-t border-gray-700" />
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-[#1e1e1e] text-gray-400">ou</span>
+          <span className="px-2 bg-[#1e1e1e] text-gray-400">or</span>
         </div>
       </div>
 
