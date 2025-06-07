@@ -108,7 +108,7 @@ export const useProfile = (): UseProfileReturn => {
     try {
       setError(null);
 
-      await ProfileService.deleteAvatar(profile.id);
+      await ProfileService.removeAvatar(profile.id);
 
       // Atualizar o perfil removendo a URL do avatar
       setProfile((prev) => (prev ? { ...prev, avatar_url: null } : null));

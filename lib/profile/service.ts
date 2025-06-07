@@ -3,7 +3,6 @@ import type {
   Profile,
   ProfileFormData,
   UserSearchResult,
-  AvatarUploadOptions,
   AvatarUploadResult,
   ProfileStats,
   ProfileWithAvatar,
@@ -212,40 +211,6 @@ export class ProfileService {
   }
 
   /**
-   * Subscreve às mudanças do perfil em tempo real
-   */
-  static subscribeToProfile(
-    userId: string,
-    callback: (payload: {
-      new: Profile;
-      old: Profile;
-      eventType: string;
-    }) => void
-  ) {
-    return supabase
-      .channel(`profile-${userId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "profiles",
-          filter: `id=eq.${userId}`,
-        } as any,
-        callback
-      )
-      .subscribe();
-  }
-
-  /**
-   * Verifica se o usuário completou o onboarding
-   */
-  static async hasCompletedOnboarding(userId: string): Promise<boolean> {
-    const profile = await this.getProfile(userId);
-    return profile?.onboarding_completed || false;
-  }
-
-  /**
    * Cria ou atualiza o perfil inicial do usuário
    */
   static async createOrUpdateProfile(
@@ -270,33 +235,5 @@ export class ProfileService {
     }
 
     return data;
-  }
-
-  /**
-   * Subscribe to profile changes
-   */
-  subscribeToProfileChanges(
-    profileId: string,
-    callback: (profile: Profile | null) => void
-  ) {
-    return supabase
-      .channel(`profile-${profileId}`)
-      .on(
-        "postgres_changes" as any,
-        {
-          event: "*",
-          schema: "public",
-          table: "profiles",
-          filter: `id=eq.${profileId}`,
-        },
-        (payload) => {
-          if (payload.eventType === "DELETE") {
-            callback(null);
-          } else {
-            callback(payload.new as Profile);
-          }
-        }
-      )
-      .subscribe();
   }
 }

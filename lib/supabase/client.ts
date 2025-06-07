@@ -1,8 +1,11 @@
 import { createBrowserClient } from "@supabase/ssr";
+import { useState, useEffect } from "react";
+import { User } from "@supabase/supabase-js";
 import {
   Database,
   TransactionFormData,
   TransactionShareInput,
+  ProfileWithAvatar,
 } from "@/types/database";
 
 export const createClientSupabase = () => {
@@ -275,8 +278,8 @@ export const getCurrentUserWithProfile = async () => {
  * Hook para verificar se o usuário está autenticado com perfil
  */
 export const useAuthWithProfile = () => {
-  const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<ProfileWithAvatar | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { useProfile } from "../../hooks/use-profile";
 import { AvatarUpload } from "../../components/profile/avatar-upload";
-import { UserAvatar } from "../../components/profile/user-avatar";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 
@@ -13,7 +12,6 @@ export default function ProfilePage() {
     loading,
     error,
     updateProfile,
-    uploadAvatar,
     deleteAvatar,
     refreshProfile,
   } = useProfile();
@@ -26,7 +24,6 @@ export default function ProfilePage() {
     location: "",
     website: "",
   });
-  const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
   React.useEffect(() => {
@@ -63,7 +60,7 @@ export default function ProfilePage() {
     setEditing(false);
   };
 
-  const handleAvatarUpload = async (url: string) => {
+  const handleAvatarUpload = async () => {
     await refreshProfile();
     setUploadError(null);
   };
@@ -139,7 +136,6 @@ export default function ProfilePage() {
               currentAvatar={profile.avatar_url}
               fallbackText={profile.full_name || profile.email}
               onUploadComplete={handleAvatarUpload}
-              onUploadStart={() => setUploading(true)}
               onError={handleAvatarError}
               size="xl"
             />

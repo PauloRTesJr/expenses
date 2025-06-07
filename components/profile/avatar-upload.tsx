@@ -49,9 +49,6 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
       setUploading(true);
       onUploadStart?.();
 
-      // Importar o hook dinamicamente para evitar problemas de hidratação
-      const { useProfile } = await import("../../hooks/use-profile");
-
       // Como não podemos usar hook aqui, vamos usar o serviço diretamente
       const { ProfileService } = await import("../../lib/profile/service");
 
