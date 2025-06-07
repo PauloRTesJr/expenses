@@ -209,7 +209,20 @@ export interface Database {
           email: string;
           full_name: string | null;
           avatar_url: string | null;
+          bio: string | null;
+          phone: string | null;
+          location: string | null;
+          website: string | null;
+          timezone: string;
+          language: string;
+          currency: string;
+          date_format: string;
+          notification_email: boolean;
+          notification_push: boolean;
           notification_shared_transactions: boolean;
+          theme_preference: "light" | "dark" | "system";
+          privacy_profile: "public" | "private" | "friends";
+          onboarding_completed: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -218,7 +231,20 @@ export interface Database {
           email: string;
           full_name?: string | null;
           avatar_url?: string | null;
+          bio?: string | null;
+          phone?: string | null;
+          location?: string | null;
+          website?: string | null;
+          timezone?: string;
+          language?: string;
+          currency?: string;
+          date_format?: string;
+          notification_email?: boolean;
+          notification_push?: boolean;
           notification_shared_transactions?: boolean;
+          theme_preference?: "light" | "dark" | "system";
+          privacy_profile?: "public" | "private" | "friends";
+          onboarding_completed?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -227,7 +253,20 @@ export interface Database {
           email?: string;
           full_name?: string | null;
           avatar_url?: string | null;
+          bio?: string | null;
+          phone?: string | null;
+          location?: string | null;
+          website?: string | null;
+          timezone?: string;
+          language?: string;
+          currency?: string;
+          date_format?: string;
+          notification_email?: boolean;
+          notification_push?: boolean;
           notification_shared_transactions?: boolean;
+          theme_preference?: "light" | "dark" | "system";
+          privacy_profile?: "public" | "private" | "friends";
+          onboarding_completed?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -246,7 +285,18 @@ export interface Database {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      search_users_for_sharing: {
+        Args: {
+          search_query: string;
+          current_user_id?: string;
+        };
+        Returns: {
+          id: string;
+          full_name: string;
+          email: string;
+          avatar_url: string | null;
+        }[];
+      };
     };
     Enums: {
       [_ in never]: never;
@@ -278,9 +328,74 @@ export type Budget = Tables<"budgets">;
 export type BudgetInsert = TablesInsert<"budgets">;
 export type BudgetUpdate = TablesUpdate<"budgets">;
 
-export type Profile = Tables<"profiles">;
-export type ProfileInsert = TablesInsert<"profiles">;
-export type ProfileUpdate = TablesUpdate<"profiles">;
+// Profile types
+export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+export type ProfileUpdate = Database["public"]["Tables"]["profiles"]["Update"];
+export type ProfileInsert = Database["public"]["Tables"]["profiles"]["Insert"];
+
+export interface ProfileFormData {
+  full_name?: string | null;
+  bio?: string | null;
+  phone?: string | null;
+  location?: string | null;
+  website?: string | null;
+  timezone?: string;
+  language?: string;
+  currency?: string;
+  date_format?: string;
+  notification_email?: boolean;
+  notification_push?: boolean;
+  notification_shared_transactions?: boolean;
+  theme_preference?: "light" | "dark" | "system";
+  privacy_profile?: "public" | "private" | "friends";
+  avatar_url?: string | null;
+  onboarding_completed?: boolean;
+}
+
+export interface ProfileWithAvatar extends Omit<Profile, "avatar_url"> {
+  avatar_url: string | null;
+}
+
+export interface ProfileWithPreferences extends Omit<Profile, "avatar_url"> {
+  avatar_url: string | null;
+  preferences: {
+    timezone: string;
+    language: string;
+    currency: string;
+    date_format: string;
+    theme_preference: "light" | "dark" | "system";
+    privacy_profile: "public" | "private" | "friends";
+  };
+}
+
+export interface UserSearchResult {
+  id: string;
+  full_name: string;
+  email: string;
+  avatar_url: string | null;
+}
+
+export interface AvatarUploadOptions {
+  maxSize: number;
+  allowedTypes: string[];
+  compression: boolean;
+  quality: number;
+}
+
+export interface AvatarUploadResult {
+  url: string;
+  path: string;
+  size: number;
+}
+
+export interface ProfileStats {
+  totalTransactions: number;
+  totalExpenses: number;
+  totalIncome: number;
+  totalSharedTransactions: number;
+  acceptedShares: number;
+  joinedDate: string | null;
+}
 
 // Tipos específicos para transações compartilhadas
 export type TransactionShare = Tables<"transaction_shares">;

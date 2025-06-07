@@ -208,3 +208,102 @@ export const createSharedTransaction = async (
     throw new Error("Erro ao criar transação compartilhada");
   }
 };
+
+/**
+ * Obtém o usuário atual com dados do perfil carregados automaticamente
+ */
+export const getCurrentUserWithProfile = async () => {
+  try {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return { user: null, profile: null, error: userError };
+    }
+
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+
+    // Buscar URL do avatar se existir
+    let avatarUrl = null;
+    try {
+      const { data: files } = await supabase.storage
+        .from("avatars")
+        .list(user.id);
+
+      if (files && files.length > 0) {
+        const latestFile = files.sort(
+          (a, b) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        )[0];
+
+        const {
+          data: { publicUrl },
+        } = supabase.storage
+          .from("avatars")
+          .getPublicUrl(`${user.id}/${latestFile.name}`);
+
+        avatarUrl = publicUrl;
+      }
+    } catch (storageError) {
+      console.log("Error loading avatar:", storageError);
+    }
+
+    const profileWithAvatar = profile
+      ? {
+          ...profile,
+          avatar_url: avatarUrl,
+        }
+      : null;
+
+    return {
+      user,
+      profile: profileWithAvatar,
+      error: profileError,
+    };
+  } catch (error) {
+    return { user: null, profile: null, error };
+  }
+};
+
+/**
+ * Hook para verificar se o usuário está autenticado com perfil
+ */
+export const useAuthWithProfile = () => {
+  const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Verificar sessão inicial
+    getCurrentUserWithProfile().then(({ user, profile }) => {
+      setUser(user);
+      setProfile(profile);
+      setLoading(false);
+    });
+
+    // Escutar mudanças na autenticação
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        const { profile } = await getCurrentUserWithProfile();
+        setUser(session.user);
+        setProfile(profile);
+      } else {
+        setUser(null);
+        setProfile(null);
+      }
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  return { user, profile, loading };
+};
