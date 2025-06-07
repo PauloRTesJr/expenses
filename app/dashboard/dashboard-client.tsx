@@ -7,6 +7,8 @@ import { TransactionForm } from "@/components/forms/transaction-form";
 import { MetricsCards } from "@/components/dashboard/metrics-cards";
 import { TransactionHistory } from "@/components/dashboard/transaction-history";
 import { MonthlyAndYearlyCharts } from "@/components/dashboard/monthly-and-yearly-charts";
+import { UserAvatar } from "@/components/profile/user-avatar";
+import { useProfile } from "@/hooks/use-profile";
 import {
   TransactionFormData,
   Transaction,
@@ -18,14 +20,7 @@ import {
   createSharedTransaction,
 } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
-import {
-  Plus,
-  Bell,
-  Search,
-  User as UserIcon,
-  LogOut,
-  Wallet,
-} from "lucide-react";
+import { Plus, Bell, Search, LogOut, Wallet } from "lucide-react";
 
 interface DashboardClientProps {
   user: User;
@@ -55,6 +50,9 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
     category_id: undefined,
     type: "all",
   });
+
+  // Profile hook for avatar and fullname
+  const { profile, loading: profileLoading } = useProfile();
 
   const supabase = createClientSupabase();
 
@@ -256,19 +254,37 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
                   className="p-2 bg-gray-800/50 hover:bg-gray-700/50 rounded-xl transition-colors"
                 >
                   <Bell className="w-5 h-5 text-gray-400" />
-                </motion.button>
-
+                </motion.button>{" "}
                 <div className="flex items-center space-x-3 pl-3 border-l border-gray-700">
                   <div className="text-right">
-                    <p className="text-sm font-medium text-white">
-                      {user.email}
-                    </p>
+                    {profileLoading ? (
+                      <div className="animate-pulse">
+                        <div className="h-4 bg-gray-700 rounded w-20 mb-1"></div>
+                        <div className="h-3 bg-gray-700 rounded w-24"></div>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-sm font-medium text-white">
+                          {profile?.full_name ||
+                            user.email?.split("@")[0] ||
+                            "Usuário"}
+                        </p>
+                        <p className="text-xs text-gray-400">{user.email}</p>
+                      </>
+                    )}
                   </div>
-                  <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
-                    <UserIcon className="w-5 h-5 text-white" />
-                  </div>
+                  {profileLoading ? (
+                    <div className="w-10 h-10 bg-gray-700 rounded-full animate-pulse"></div>
+                  ) : (
+                    <UserAvatar
+                      src={profile?.avatar_url}
+                      alt={profile?.full_name || "Avatar do usuário"}
+                      size="md"
+                      fallbackText={profile?.full_name || user.email}
+                      className="border-2 border-gray-600 hover:border-gray-500 transition-colors cursor-pointer"
+                    />
+                  )}
                 </div>
-
                 <form action="/auth/signout" method="post">
                   <motion.button
                     whileHover={{ scale: 1.05 }}
