@@ -370,7 +370,7 @@ export interface ProfileWithPreferences extends Omit<Profile, "avatar_url"> {
 
 export interface UserSearchResult {
   id: string;
-  full_name: string;
+  full_name: string | null;
   email: string;
   avatar_url: string | null;
 }
