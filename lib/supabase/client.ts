@@ -60,15 +60,19 @@ export const searchUsers = async (query: string) => {
     }
 
     const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return [];
+
+    let builder = supabase
+      .from("profiles")
+      .select("id, full_name, email, avatar_url")
+      .or(`full_name.ilike.%${query}%,email.ilike.%${query}%`)
+      .order("full_name")
+      .limit(20);
+
+    if (currentUser) {
+      builder = builder.neq("id", currentUser.id);
     }
 
-    // Utiliza a stored procedure para respeitar as regras de privacidade
-    const { data, error } = await supabase.rpc("search_users_for_sharing", {
-      search_query: query,
-      current_user_id: currentUser.id,
-    });
+    const { data, error } = await builder;
 
     if (error) {
       console.log("searchUsers error", error);
