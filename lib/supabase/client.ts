@@ -313,3 +313,142 @@ export const useAuthWithProfile = () => {
 
   return { user, profile, loading };
 };
+
+/**
+ * Buscar transações com informações de compartilhamento
+ */
+export const fetchTransactionsWithShares = async (userId: string) => {
+  try {
+    console.log(
+      "fetchTransactionsWithShares: Fetching transactions for user:",
+      userId
+    );
+
+    const { data: transactionsData, error } = await supabase
+      .from("transactions")
+      .select(`*,category:categories(*)`)
+      .eq("user_id", userId)
+      .order("date", { ascending: false });
+
+    if (error) throw error;
+
+    console.log(
+      "fetchTransactionsWithShares: Found transactions:",
+      transactionsData?.length
+    );
+
+    // Fetch transaction shares separately to avoid complex join issues
+    const transactionIds = transactionsData?.map((t) => t.id) || [];
+
+    interface ShareWithProfile {
+      id: string;
+      transaction_id: string;
+      shared_with_user_id: string;
+      share_type: string;
+      share_value: number | null;
+      status: string;
+      created_at: string;
+      updated_at: string;
+      profiles: {
+        full_name: string | null;
+        email: string;
+      };
+    }
+
+    let sharesData: ShareWithProfile[] = [];
+    if (transactionIds.length > 0) {
+      console.log(
+        "fetchTransactionsWithShares: Fetching shares for transaction IDs:",
+        transactionIds
+      );
+
+      const { data: shares, error: sharesError } = await supabase
+        .from("transaction_shares")
+        .select(
+          `
+          id,
+          transaction_id,
+          shared_with_user_id,
+          share_type,
+          share_value,
+          status,
+          created_at,
+          updated_at
+        `
+        )
+        .in("transaction_id", transactionIds);
+
+      if (sharesError) throw sharesError;
+
+      console.log("fetchTransactionsWithShares: Found shares:", shares?.length);
+
+      // Get profiles for shared users
+      const sharedUserIds = shares?.map((s) => s.shared_with_user_id) || [];
+
+      interface ProfileData {
+        id: string;
+        full_name: string | null;
+        email: string;
+      }
+
+      let profilesData: ProfileData[] = [];
+
+      if (sharedUserIds.length > 0) {
+        console.log(
+          "fetchTransactionsWithShares: Fetching profiles for user IDs:",
+          sharedUserIds
+        );
+
+        const { data: profiles, error: profilesError } = await supabase
+          .from("profiles")
+          .select("id, full_name, email")
+          .in("id", sharedUserIds);
+
+        if (profilesError) throw profilesError;
+        profilesData = profiles || [];
+        console.log(
+          "fetchTransactionsWithShares: Found profiles:",
+          profilesData.length
+        );
+      }
+
+      // Combine shares with profile data
+      sharesData = (shares || []).map((share) => ({
+        ...share,
+        profiles: profilesData.find(
+          (p) => p.id === share.shared_with_user_id
+        ) || { full_name: null, email: "" },
+      }));
+
+      console.log(
+        "fetchTransactionsWithShares: Combined shares with profiles:",
+        sharesData
+      );
+    }
+
+    // Combine transactions with their shares
+    const transformedData = (transactionsData || []).map((transaction) => {
+      const transactionShares = sharesData.filter(
+        (share) => share.transaction_id === transaction.id
+      );
+      console.log(
+        `Transaction ${transaction.id} has ${transactionShares.length} shares:`,
+        transactionShares
+      );
+
+      return {
+        ...transaction,
+        transaction_shares: transactionShares,
+      };
+    });
+
+    console.log(
+      "fetchTransactionsWithShares: Final transformed data:",
+      transformedData
+    );
+    return transformedData;
+  } catch (error) {
+    console.log("fetchTransactionsWithShares error", error);
+    throw new Error("Erro ao buscar transações com compartilhamentos");
+  }
+};

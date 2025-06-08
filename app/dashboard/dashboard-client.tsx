@@ -11,13 +11,14 @@ import { UserAvatar } from "@/components/profile/user-avatar";
 import { useProfile } from "@/hooks/use-profile";
 import {
   TransactionFormData,
-  Transaction,
   Category,
   TransactionShareInput,
 } from "@/types/database";
+import { TransactionWithShares } from "@/types/shared-transactions";
 import {
   createClientSupabase,
   createSharedTransaction,
+  fetchTransactionsWithShares,
 } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Plus, Bell, Search, LogOut, Wallet } from "lucide-react";
@@ -27,7 +28,7 @@ interface DashboardClientProps {
   categories: Array<{ id: string; name: string; type: "income" | "expense" }>;
 }
 
-interface TransactionWithCategory extends Transaction {
+interface TransactionWithCategory extends TransactionWithShares {
   category?: Category;
 }
 
@@ -54,31 +55,18 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
   // Profile hook for avatar and fullname
   const { profile, loading: profileLoading } = useProfile();
 
-  const supabase = createClientSupabase();
-
-  // Buscar transações do banco de dados
+  const supabase = createClientSupabase(); // Buscar transações do banco de dados
   const fetchTransactions = useCallback(async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("transactions")
-        .select(
-          `
-          *,
-          category:categories(*)
-        `
-        )
-        .eq("user_id", user.id)
-        .order("date", { ascending: false });
+      const data = await fetchTransactionsWithShares(user.id);
 
-      if (error) throw error;
-
-      const transformedData: TransactionWithCategory[] = (data || []).map(
-        (item) => ({
-          ...item,
-          category: item.category || undefined,
-        })
-      );
+      // Use type assertion to handle the type mismatch temporarily
+      const transformedData = data.map((item) => ({
+        ...item,
+        category: item.category || undefined,
+        transaction_shares: item.transaction_shares || [],
+      })) as TransactionWithCategory[];
 
       setTransactions(transformedData);
     } catch (error) {
@@ -86,7 +74,7 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [user.id, supabase]);
+  }, [user.id]);
 
   useEffect(() => {
     fetchTransactions();
@@ -138,7 +126,6 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
       monthlyGrowth,
     };
   }, [filteredTransactions]);
-
   const handleTransactionSubmit = async (
     data: TransactionFormData & { shares?: TransactionShareInput[] }
   ) => {
@@ -223,7 +210,6 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
                 <p className="text-xs text-gray-400">Financial Dashboard</p>
               </div>
             </div>
-
             {/* Search bar */}
             <div className="hidden md:flex flex-1 max-w-md mx-8">
               <div className="relative w-full">
@@ -235,7 +221,6 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
                 />
               </div>
             </div>
-
             {/* Actions */}
             <div className="flex items-center space-x-4">
               <motion.button

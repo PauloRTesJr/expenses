@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Transaction } from "@/types/database";
+import { TransactionWithShares } from "@/types/shared-transactions";
 import {
   CreditCard,
   TrendingUp,
@@ -10,10 +10,11 @@ import {
   Search,
   Filter,
   MoreHorizontal,
+  Users,
 } from "lucide-react";
 
 interface TransactionHistoryProps {
-  transactions: Transaction[];
+  transactions: TransactionWithShares[];
   isLoading: boolean;
 }
 
@@ -21,6 +22,9 @@ export function TransactionHistory({
   transactions,
   isLoading,
 }: TransactionHistoryProps) {
+  // Debug: log transactions to see if shares are included
+  console.log("TransactionHistory transactions:", transactions);
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
@@ -49,6 +53,48 @@ export function TransactionHistory({
 
   const getStatusLabel = (type: string) => {
     return type === "income" ? "Receita" : "Despesa";
+  };  const formatSharedUsers = (transaction: TransactionWithShares) => {
+    // Debug: log transaction shares
+    console.log("formatSharedUsers transaction:", transaction);
+    console.log("formatSharedUsers shares:", transaction.transaction_shares);
+
+    if (
+      !transaction.transaction_shares ||
+      transaction.transaction_shares.length === 0
+    ) {
+      console.log("No shares found for transaction:", transaction.id);
+      return null;
+    }
+
+    // Temporarily show all shares, not just accepted ones
+    const allShares = transaction.transaction_shares;
+
+    console.log("All shares:", allShares);
+
+    if (allShares.length === 0) {
+      console.log("No shares found");
+      return null;
+    }
+
+    const userNames = allShares.map(
+      (share) => share.profiles?.full_name?.split(' ')[0] || share.profiles?.email?.split('@')[0] || "Usuário"
+    );
+
+    console.log("User names:", userNames);    const status = allShares[0]?.status || "pending";
+    const statusMap: Record<string, string> = {
+      pending: "Pendente",
+      accepted: "Aceito",
+      rejected: "Rejeitado",
+      declined: "Rejeitado"
+    };
+
+    if (userNames.length === 1) {
+      return `${userNames[0]} (${statusMap[status] || status})`;
+    } else if (userNames.length === 2) {
+      return `${userNames[0]}, ${userNames[1]} (${statusMap[status] || status})`;
+    } else {
+      return `${userNames[0]} +${userNames.length - 1} (${statusMap[status] || status})`;
+    }
   };
 
   if (isLoading) {
@@ -101,17 +147,14 @@ export function TransactionHistory({
             <Filter className="w-4 h-4 text-gray-400" />
           </button>
         </div>
-      </div>
-
-      {/* Table Header */}
+      </div>{" "}      {/* Table Header */}
       <div className="hidden lg:grid lg:grid-cols-5 gap-4 text-sm font-medium text-gray-400 mb-4 px-4">
-        <div className="min-w-0">ID</div>
         <div className="min-w-0">Nome</div>
         <div className="min-w-0">Data</div>
+        <div className="min-w-0">Compartilhamento</div>
         <div className="min-w-0 text-right">Valor</div>
         <div className="min-w-0 text-center">Status</div>
       </div>
-
       {/* Transactions List */}
       <div className="space-y-2 max-h-96 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent hover:scrollbar-thumb-gray-500">
         <AnimatePresence>
@@ -141,15 +184,22 @@ export function TransactionHistory({
                       ) : (
                         <TrendingDown className="w-4 h-4 text-red-400" />
                       )}
-                    </div>
-                    <div className="min-w-0 flex-1">
+                    </div>{" "}                    <div className="min-w-0 flex-1">
                       <p className="font-medium text-white group-hover:text-blue-300 transition-colors truncate">
                         {transaction.description}
                       </p>
-                      <p className="text-xs text-gray-400">
-                        #{transaction.id.slice(-8)} •{" "}
-                        {formatDate(transaction.date)}
-                      </p>
+                      <div className="flex items-center space-x-2 text-xs text-gray-400">
+                        <span>{formatDate(transaction.date)}</span>
+                        {formatSharedUsers(transaction) && (
+                          <>
+                            <span>•</span>
+                            <span className="text-blue-400 flex items-center">
+                              <Users className="w-3 h-3 mr-1" />
+                              {formatSharedUsers(transaction)}
+                            </span>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <div className="text-right flex-shrink-0 ml-4">
@@ -175,11 +225,9 @@ export function TransactionHistory({
                     </div>
                   </div>
                 </div>
-              </div>
-
-              {/* Desktop Layout */}
+              </div>{" "}              {/* Desktop Layout */}
               <div className="hidden lg:grid lg:grid-cols-5 gap-4 items-center">
-                {/* ID e Avatar */}
+                {/* Icon and Description */}
                 <div className="flex items-center space-x-3 min-w-0">
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
@@ -194,16 +242,11 @@ export function TransactionHistory({
                       <TrendingDown className="w-5 h-5 text-red-400" />
                     )}
                   </div>
-                  <span className="text-sm font-mono text-gray-400 truncate">
-                    #{transaction.id.slice(-8)}
-                  </span>
-                </div>
-
-                {/* Nome/Descrição */}
-                <div className="min-w-0">
-                  <p className="font-medium text-white group-hover:text-blue-300 transition-colors truncate">
-                    {transaction.description}
-                  </p>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-white group-hover:text-blue-300 transition-colors truncate">
+                      {transaction.description}
+                    </p>
+                  </div>
                 </div>
 
                 {/* Data */}
@@ -212,6 +255,20 @@ export function TransactionHistory({
                   <span className="text-sm truncate">
                     {formatDate(transaction.date)}
                   </span>
+                </div>
+
+                {/* Compartilhamento */}
+                <div className="min-w-0">
+                  {formatSharedUsers(transaction) ? (
+                    <div className="flex items-center text-blue-400">
+                      <Users className="w-4 h-4 mr-2 flex-shrink-0" />
+                      <span className="text-sm truncate">
+                        {formatSharedUsers(transaction)}
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-sm text-gray-500">-</span>
+                  )}
                 </div>
 
                 {/* Valor */}
@@ -249,7 +306,6 @@ export function TransactionHistory({
           ))}
         </AnimatePresence>
       </div>
-
       {/* Footer */}
       {transactions.length > 10 && (
         <div className="flex justify-center mt-6">
@@ -258,7 +314,6 @@ export function TransactionHistory({
           </button>
         </div>
       )}
-
       {transactions.length === 0 && !isLoading && (
         <div className="text-center py-12">
           <CreditCard className="w-12 h-12 text-gray-600 mx-auto mb-4" />
