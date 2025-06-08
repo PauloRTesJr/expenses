@@ -9,7 +9,7 @@ A modern and efficient system for personal income and expense control, developed
 This project enforces **mandatory unit testing** for:
 
 - ✅ New functions or methods
-- ✅ New React components  
+- ✅ New React components
 - ✅ New utility functions
 - ✅ New API routes
 - ✅ Bug fixes
@@ -34,7 +34,67 @@ This project enforces **mandatory unit testing** for:
 npm run test:coverage:check
 ```
 
+## ⚠️ MANDATORY CODE QUALITY POLICY
+
+**🚨 CRITICAL REQUIREMENT: ALL tasks MUST run lint verification to ensure code quality and consistency.**
+
+**Mandatory Commands Before Any Task:**
+
+```bash
+# Required before any development task
+npm run lint
+
+# Fix automatic lint issues
+npm run lint -- --fix
+```
+
+**When to run lint:**
+
+- ✅ Before committing code
+- ✅ Before creating pull requests
+- ✅ Before deploying to any environment
+- ✅ After adding new features
+- ✅ After bug fixes
+- ✅ After refactoring code
+
+**Enforcement:**
+
+- 🚫 Code with lint errors will be **REJECTED**
+- 🚫 PRs with lint warnings will be **REJECTED**
+- 🚫 CI/CD will **FAIL** with lint issues
+
 For detailed testing guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md#mandatory-unit-testing-policy).
+
+## ⚠️ MANDATORY CODE QUALITY POLICY
+
+**🚨 CRITICAL REQUIREMENT: ALL tasks MUST run lint verification to ensure code quality and consistency.**
+
+**Mandatory Commands Before Any Task:**
+
+```bash
+# Required before any development task
+npm run lint
+
+# Fix automatic lint issues
+npm run lint -- --fix
+```
+
+**When to run lint:**
+
+- ✅ Before committing code
+- ✅ Before creating pull requests
+- ✅ Before deploying to any environment
+- ✅ After adding new features
+- ✅ After bug fixes
+- ✅ After refactoring code
+
+**Enforcement:**
+
+- 🚫 Code with lint errors will be **REJECTED**
+- 🚫 PRs with lint warnings will be **REJECTED**
+- 🚫 CI/CD will **FAIL** with lint issues
+
+For detailed lint guidelines, see [LINT_GUIDE.md](LINT_GUIDE.md).
 
 ## 🚀 Features
 
@@ -140,11 +200,11 @@ const MetricCard = ({ title, value, trend, children }) => {
           </span>
         </div>
       </div>
-      
+
       <div className="text-2xl font-bold text-white mb-2">
         {value}
       </div>
-      
+
       {children}
     </div>
   );
@@ -153,7 +213,7 @@ const MetricCard = ({ title, value, trend, children }) => {
 // ✅ CORRECT - Using CSS custom classes
 const PrimaryButton = ({ children, onClick }) => {
   return (
-    <button 
+    <button
       className="btn-primary focus-ring"
       onClick={onClick}
     >
@@ -166,10 +226,10 @@ const PrimaryButton = ({ children, onClick }) => {
 const StatusBadge = ({ status }) => {
   const statusClasses = {
     active: 'status-active',
-    complete: 'status-complete', 
+    complete: 'status-complete',
     pending: 'status-pending'
   };
-  
+
   return (
     <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusClasses[status]}`}>
       {status}
@@ -211,11 +271,11 @@ const StyledButton = styled.button`
           <stop offset="95%" stopColor="#667eea" stopOpacity={0} />
         </linearGradient>
       </defs>
-      <Area 
-        type="monotone" 
-        dataKey="value" 
-        stroke="#667eea" 
-        fill="url(#gradient)" 
+      <Area
+        type="monotone"
+        dataKey="value"
+        stroke="#667eea"
+        fill="url(#gradient)"
         strokeWidth={3}
       />
     </AreaChart>

@@ -142,6 +142,35 @@ const fetchTransactions = async (): Promise<Transaction[]> => {
 };
 ```
 
+### Lint Requirements
+
+**MANDATORY: Run lint before any development task**
+
+```bash
+# Required before any commit, PR, or deployment
+npm run lint
+
+# Fix automatic lint issues
+npm run lint -- --fix
+```
+
+**Lint enforcement policy:**
+
+- ✅ **REQUIRED**: Zero lint errors before committing
+- ✅ **REQUIRED**: Zero lint warnings before creating PRs
+- ✅ **REQUIRED**: Run lint after any code changes
+- ✅ **REQUIRED**: Fix all lint issues immediately
+
+**When to run lint:**
+
+- Before committing code
+- Before creating pull requests
+- Before deploying to any environment
+- After adding new features
+- After bug fixes
+- After refactoring code
+- After resolving merge conflicts
+
 ## 📁 File Structure
 
 ### Directory Organization
@@ -673,12 +702,12 @@ const MetricCard = ({ title, value, trend, icon }: MetricCardProps) => {
           {trend > 0 ? '+' : ''}{trend}%
         </span>
       </div>
-      
+
       <h3 className="text-gray-400 text-sm font-medium">{title}</h3>
       <p className="text-white text-2xl font-bold mt-1">{value}</p>
-      
+
       <div className="mt-4 h-1 bg-gray-700 rounded-full overflow-hidden">
-        <div 
+        <div
           className="h-full bg-gradient-primary transition-all duration-500"
           style={{ width: `${Math.abs(trend)}%` }}
         />
@@ -700,9 +729,9 @@ const StatusBadge = ({ status, children }: StatusBadgeProps) => {
       inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
       ${statusVariants[status]}
     `}>
-      <div 
+      <div
         className="w-2 h-2 rounded-full mr-2"
-        style={{ backgroundColor: status === 'active' ? '#8b5cf6' : 
+        style={{ backgroundColor: status === 'active' ? '#8b5cf6' :
                                   status === 'complete' ? '#3b82f6' : '#ef4444' }}
       />
       {children}
@@ -713,7 +742,7 @@ const StatusBadge = ({ status, children }: StatusBadgeProps) => {
 // ✅ CORRECT - Modern button with gradient
 const PrimaryButton = ({ children, loading, ...props }: ButtonProps) => {
   return (
-    <button 
+    <button
       className={`
         btn-primary focus-ring
         ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'}
@@ -754,7 +783,7 @@ const ChartContainer = ({ title, children, actions }: ChartProps) => {
           </div>
         )}
       </div>
-      
+
       <div className="chart-container">
         {children}
       </div>
@@ -780,12 +809,12 @@ const DashboardLayout = ({ children }: LayoutProps) => {
             <h1 className="text-xl font-bold text-white">UI Art</h1>
             <span className="text-sm text-gray-400">Financial Dashboard</span>
           </div>
-          
+
           <div className="flex items-center space-x-4">
             <div className="input-modern w-64">
-              <input 
-                type="text" 
-                placeholder="Search transactions..." 
+              <input
+                type="text"
+                placeholder="Search transactions..."
                 className="w-full bg-transparent outline-none"
               />
             </div>
@@ -809,7 +838,7 @@ const TransactionList = ({ transactions }: TransactionListProps) => {
   return (
     <div className="space-y-4">
       {transactions.map((transaction, index) => (
-        <div 
+        <div
           key={transaction.id}
           className="card-modern p-4 animate-fade-in-up hover:card-elevated"
           style={{ animationDelay: `${index * 0.1}s` }}
@@ -818,19 +847,19 @@ const TransactionList = ({ transactions }: TransactionListProps) => {
             <div className="flex items-center space-x-3">
               <div className={`
                 w-10 h-10 rounded-full flex items-center justify-center
-                ${transaction.type === 'income' 
-                  ? 'bg-green-500/20 text-green-400' 
+                ${transaction.type === 'income'
+                  ? 'bg-green-500/20 text-green-400'
                   : 'bg-red-500/20 text-red-400'}
               `}>
                 {transaction.type === 'income' ? '↗' : '↙'}
               </div>
-              
+
               <div>
                 <p className="text-white font-medium">{transaction.description}</p>
                 <p className="text-gray-400 text-sm">{formatDate(transaction.date)}</p>
               </div>
             </div>
-            
+
             <div className="text-right">
               <p className={`text-lg font-semibold ${
                 transaction.type === 'income' ? 'text-green-400' : 'text-red-400'
@@ -868,7 +897,7 @@ const ChartsSection = ({ earnings, status }: ChartsSectionProps) => {
       <div className="lg:col-span-2 card-modern p-6">
         <EarningsChart data={earnings} />
       </div>
-      
+
       {/* Status Chart - spans 1 column */}
       <div className="card-modern p-6">
         <StatusChart data={status} />
@@ -884,7 +913,7 @@ const ChartsSection = ({ earnings, status }: ChartsSectionProps) => {
 // ✅ REQUIRED - Proper focus management
 const AccessibleButton = ({ children, ...props }: ButtonProps) => {
   return (
-    <button 
+    <button
       className="btn-primary focus-ring"
       {...props}
     >
@@ -896,9 +925,9 @@ const AccessibleButton = ({ children, ...props }: ButtonProps) => {
 // ✅ REQUIRED - Screen reader support
 const MetricCard = ({ title, value, trend }: MetricCardProps) => {
   return (
-    <div 
-      className="card-modern p-6" 
-      role="region" 
+    <div
+      className="card-modern p-6"
+      role="region"
       aria-label={`${title} metric`}
     >
       <h3 className="sr-only">{title}</h3>
@@ -921,7 +950,7 @@ const HighContrastText = ({ children, variant = 'primary' }: TextProps) => {
     secondary: 'text-gray-300',  // Contrast ratio > 3:1
     muted: 'text-gray-400',      // Contrast ratio > 3:1
   };
-  
+
   return (
     <span className={variants[variant]}>
       {children}
