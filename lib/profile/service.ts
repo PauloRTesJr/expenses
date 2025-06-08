@@ -99,9 +99,20 @@ export class ProfileService {
       return [];
     }
 
-    const { data, error } = await supabase.rpc("search_users_for_sharing", {
-      search_query: query,
-    });
+    const currentUser = await supabase.auth.getUser();
+
+    let builder = supabase
+      .from("profiles")
+      .select("id, full_name, email, avatar_url")
+      .or(`full_name.ilike.%${query}%,email.ilike.%${query}%`)
+      .order("full_name")
+      .limit(20);
+
+    if (currentUser.data.user) {
+      builder = builder.neq("id", currentUser.data.user.id);
+    }
+
+    const { data, error } = await builder;
 
     if (error) {
       console.error("Error searching users:", error);

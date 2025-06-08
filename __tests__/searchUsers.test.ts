@@ -14,8 +14,11 @@ jest.mock("@supabase/ssr", () => {
       update: jest.fn().mockReturnThis(),
       delete: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
+      neq: jest.fn().mockReturnThis(),
       order: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
       range: jest.fn().mockReturnThis(),
+      or: jest.fn().mockReturnThis(),
     })),
   };
   return {
@@ -32,21 +35,35 @@ const supabaseMock = (createBrowserClient as jest.Mock).mock.results[0].value;
 describe("searchUsers", () => {
   beforeEach(() => {
     supabaseMock.rpc.mockReset();
+    supabaseMock.from.mockReset();
+    supabaseMock.auth.getUser.mockReset();
   });
 
-  it("calls Supabase RPC with provided query", async () => {
-    supabaseMock.rpc.mockResolvedValue({
-      data: [
-        { id: "1", full_name: "Test User", email: "test@example.com", avatar_url: null },
-      ],
-      error: null,
-    });
+  it("queries profiles with provided query", async () => {
+    const builder = {
+      select: jest.fn().mockReturnThis(),
+      or: jest.fn().mockReturnThis(),
+      order: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      neq: jest.fn().mockReturnThis(),
+      then: jest.fn((resolve) =>
+        resolve({
+          data: [
+            { id: "1", full_name: "Test User", email: "test@example.com", avatar_url: null },
+          ],
+          error: null,
+        })
+      ),
+    } as any;
+    supabaseMock.from.mockReturnValue(builder);
+    supabaseMock.auth.getUser.mockResolvedValue({ data: { user: { id: "current" } }, error: null });
 
     const results = await searchUsers("te");
 
-    expect(supabaseMock.rpc).toHaveBeenCalledWith("search_users_for_sharing", {
-      search_query: "te",
-    });
+    expect(supabaseMock.from).toHaveBeenCalledWith("profiles");
+    expect(builder.or).toHaveBeenCalledWith("full_name.ilike.%te%,email.ilike.%te%");
+    expect(builder.neq).toHaveBeenCalledWith("id", "current");
+    expect(builder.limit).toHaveBeenCalledWith(20);
     expect(results).toEqual([
       { id: "1", full_name: "Test User", email: "test@example.com", avatar_url: null },
     ]);
@@ -55,11 +72,20 @@ describe("searchUsers", () => {
   it("returns empty array for short query", async () => {
     const results = await searchUsers("a");
     expect(results).toEqual([]);
-    expect(supabaseMock.rpc).not.toHaveBeenCalled();
+    expect(supabaseMock.from).not.toHaveBeenCalled();
   });
 
   it("throws error when RPC fails", async () => {
-    supabaseMock.rpc.mockResolvedValue({ data: null, error: new Error("fail") });
+    const builder = {
+      select: jest.fn().mockReturnThis(),
+      or: jest.fn().mockReturnThis(),
+      order: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      neq: jest.fn().mockReturnThis(),
+      then: jest.fn((resolve) => resolve({ data: null, error: new Error("fail") })),
+    } as any;
+    supabaseMock.from.mockReturnValue(builder);
+    supabaseMock.auth.getUser.mockResolvedValue({ data: { user: { id: "current" } }, error: null });
 
     await expect(searchUsers("john")).rejects.toThrow("Erro ao buscar usuários");
   });
