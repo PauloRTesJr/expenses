@@ -85,8 +85,9 @@ export function TransactionForm({
     >
       <div className="card-glass">
         <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-2">
           {/* Transaction Type */}
-          <div>
+          <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-300 mb-3">
               Transaction Type
             </label>
@@ -326,6 +327,8 @@ export function TransactionForm({
                 </svg>
               </div>
             </div>
+          </div>
+          {/* Close grid */}
           </div>
 
           {/* User Selector for Sharing */}

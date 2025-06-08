@@ -64,12 +64,11 @@ export const searchUsers = async (query: string) => {
       return [];
     }
 
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("id, email, full_name")
-      .or(`email.ilike.%${query}%,full_name.ilike.%${query}%`)
-      .neq("id", currentUser.id) // Excluir o usuário atual
-      .limit(10);
+    // Utiliza a stored procedure para respeitar as regras de privacidade
+    const { data, error } = await supabase.rpc("search_users_for_sharing", {
+      search_query: query,
+      current_user_id: currentUser.id,
+    });
 
     if (error) {
       console.log("searchUsers error", error);
