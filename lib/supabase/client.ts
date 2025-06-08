@@ -59,15 +59,11 @@ export const searchUsers = async (query: string) => {
       return [];
     }
 
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return [];
-    }
-
-    // Utiliza a stored procedure para respeitar as regras de privacidade
+    // A stored procedure handles auth context internally. By not
+    // sending the user id explicitly we avoid cases where the current
+    // session is not yet loaded and `getCurrentUser` returns `null`.
     const { data, error } = await supabase.rpc("search_users_for_sharing", {
       search_query: query,
-      current_user_id: currentUser.id,
     });
 
     if (error) {

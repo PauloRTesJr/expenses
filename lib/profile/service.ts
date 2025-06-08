@@ -101,7 +101,6 @@ export class ProfileService {
 
     const { data, error } = await supabase.rpc("search_users_for_sharing", {
       search_query: query,
-      current_user_id: (await supabase.auth.getUser()).data.user?.id,
     });
 
     if (error) {
