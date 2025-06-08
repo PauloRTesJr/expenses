@@ -53,7 +53,8 @@ export function TransactionHistory({
 
   const getStatusLabel = (type: string) => {
     return type === "income" ? "Receita" : "Despesa";
-  };  const formatSharedUsers = (transaction: TransactionWithShares) => {
+  };
+  const formatSharedUsers = (transaction: TransactionWithShares) => {
     // Debug: log transaction shares
     console.log("formatSharedUsers transaction:", transaction);
     console.log("formatSharedUsers shares:", transaction.transaction_shares);
