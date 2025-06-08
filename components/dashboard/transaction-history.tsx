@@ -53,7 +53,8 @@ export function TransactionHistory({
 
   const getStatusLabel = (type: string) => {
     return type === "income" ? "Receita" : "Despesa";
-  };  const formatSharedUsers = (transaction: TransactionWithShares) => {
+  };
+  const formatSharedUsers = (transaction: TransactionWithShares) => {
     // Debug: log transaction shares
     console.log("formatSharedUsers transaction:", transaction);
     console.log("formatSharedUsers shares:", transaction.transaction_shares);
@@ -77,23 +78,31 @@ export function TransactionHistory({
     }
 
     const userNames = allShares.map(
-      (share) => share.profiles?.full_name?.split(' ')[0] || share.profiles?.email?.split('@')[0] || "Usuário"
+      (share) =>
+        share.profiles?.full_name?.split(" ")[0] ||
+        share.profiles?.email?.split("@")[0] ||
+        "Usuário"
     );
 
-    console.log("User names:", userNames);    const status = allShares[0]?.status || "pending";
+    console.log("User names:", userNames);
+    const status = allShares[0]?.status || "pending";
     const statusMap: Record<string, string> = {
       pending: "Pendente",
       accepted: "Aceito",
       rejected: "Rejeitado",
-      declined: "Rejeitado"
+      declined: "Rejeitado",
     };
 
     if (userNames.length === 1) {
       return `${userNames[0]} (${statusMap[status] || status})`;
     } else if (userNames.length === 2) {
-      return `${userNames[0]}, ${userNames[1]} (${statusMap[status] || status})`;
+      return `${userNames[0]}, ${userNames[1]} (${
+        statusMap[status] || status
+      })`;
     } else {
-      return `${userNames[0]} +${userNames.length - 1} (${statusMap[status] || status})`;
+      return `${userNames[0]} +${userNames.length - 1} (${
+        statusMap[status] || status
+      })`;
     }
   };
 
@@ -147,7 +156,8 @@ export function TransactionHistory({
             <Filter className="w-4 h-4 text-gray-400" />
           </button>
         </div>
-      </div>{" "}      {/* Table Header */}
+      </div>{" "}
+      {/* Table Header */}
       <div className="hidden lg:grid lg:grid-cols-5 gap-4 text-sm font-medium text-gray-400 mb-4 px-4">
         <div className="min-w-0">Nome</div>
         <div className="min-w-0">Data</div>
@@ -184,7 +194,8 @@ export function TransactionHistory({
                       ) : (
                         <TrendingDown className="w-4 h-4 text-red-400" />
                       )}
-                    </div>{" "}                    <div className="min-w-0 flex-1">
+                    </div>{" "}
+                    <div className="min-w-0 flex-1">
                       <p className="font-medium text-white group-hover:text-blue-300 transition-colors truncate">
                         {transaction.description}
                       </p>
@@ -225,7 +236,8 @@ export function TransactionHistory({
                     </div>
                   </div>
                 </div>
-              </div>{" "}              {/* Desktop Layout */}
+              </div>{" "}
+              {/* Desktop Layout */}
               <div className="hidden lg:grid lg:grid-cols-5 gap-4 items-center">
                 {/* Icon and Description */}
                 <div className="flex items-center space-x-3 min-w-0">
