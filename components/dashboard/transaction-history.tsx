@@ -53,8 +53,7 @@ export function TransactionHistory({
 
   const getStatusLabel = (type: string) => {
     return type === "income" ? "Receita" : "Despesa";
-  };
-  const formatSharedUsers = (transaction: TransactionWithShares) => {
+  };  const formatSharedUsers = (transaction: TransactionWithShares) => {
     // Debug: log transaction shares
     console.log("formatSharedUsers transaction:", transaction);
     console.log("formatSharedUsers shares:", transaction.transaction_shares);
@@ -67,7 +66,7 @@ export function TransactionHistory({
       return null;
     }
 
-    // Temporarily show all shares, not just accepted ones
+    // Show all shares (status is always accepted now)
     const allShares = transaction.transaction_shares;
 
     console.log("All shares:", allShares);
@@ -85,24 +84,13 @@ export function TransactionHistory({
     );
 
     console.log("User names:", userNames);
-    const status = allShares[0]?.status || "pending";
-    const statusMap: Record<string, string> = {
-      pending: "Pendente",
-      accepted: "Aceito",
-      rejected: "Rejeitado",
-      declined: "Rejeitado",
-    };
 
     if (userNames.length === 1) {
-      return `${userNames[0]} (${statusMap[status] || status})`;
+      return userNames[0];
     } else if (userNames.length === 2) {
-      return `${userNames[0]}, ${userNames[1]} (${
-        statusMap[status] || status
-      })`;
+      return `${userNames[0]}, ${userNames[1]}`;
     } else {
-      return `${userNames[0]} +${userNames.length - 1} (${
-        statusMap[status] || status
-      })`;
+      return `${userNames[0]} +${userNames.length - 1}`;
     }
   };
 

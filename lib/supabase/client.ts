@@ -120,16 +120,14 @@ export const createSharedTransaction = async (
     if (transactionError) {
       console.log("createSharedTransaction transactionError", transactionError);
       throw transactionError;
-    }
-
-    // Se houver compartilhamento, criar os registros de shares
+    }    // Se houver compartilhamento, criar os registros de shares
     if (shares && shares.length > 0) {
       const shareInserts = shares.map((share) => ({
         transaction_id: transaction.id,
         shared_with_user_id: share.userId,
         share_type: share.shareType,
         share_value: share.shareValue,
-        status: "pending" as const,
+        status: "accepted" as const,
       }));
 
       const { error: sharesError } = await supabase
@@ -180,9 +178,7 @@ export const createSharedTransaction = async (
           installmentsError
         );
         throw installmentsError;
-      }
-
-      // Se houver compartilhamento, criar shares para cada parcela
+      }      // Se houver compartilhamento, criar shares para cada parcela
       if (shares && shares.length > 0 && installmentTransactions) {
         const allInstallmentShares = installmentTransactions.flatMap((inst) =>
           shares.map((share) => ({
@@ -190,7 +186,7 @@ export const createSharedTransaction = async (
             shared_with_user_id: share.userId,
             share_type: share.shareType,
             share_value: share.shareValue,
-            status: "pending" as const,
+            status: "accepted" as const,
           }))
         );
 
