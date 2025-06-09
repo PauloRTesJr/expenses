@@ -6,6 +6,7 @@ import {
   TransactionFormData,
   TransactionShareInput,
   ProfileWithAvatar,
+  Tables,
 } from "@/types/database";
 
 export const createClientSupabase = () => {
@@ -333,8 +334,33 @@ export const fetchTransactionsWithShares = async (userId: string) => {
       transactionsData?.length
     );
 
-    // Fetch transaction shares separately to avoid complex join issues
-    const transactionIds = transactionsData?.map((t) => t.id) || [];
+    // Fetch transactions shared with the user
+    const { data: sharedIds, error: sharedIdsError } = await supabase
+      .from("transaction_shares")
+      .select("transaction_id")
+      .eq("shared_with_user_id", userId)
+      .eq("status", "accepted");
+
+    if (sharedIdsError) throw sharedIdsError;
+
+    const sharedTransactionIds = sharedIds?.map((s) => s.transaction_id) || [];
+
+    let sharedTransactions: Tables<"transactions">[] = [];
+    if (sharedTransactionIds.length > 0) {
+      const { data: sharedData, error: sharedError } = await supabase
+        .from("transactions")
+        .select(`*,category:categories(*)`)
+        .in("id", sharedTransactionIds);
+
+      if (sharedError) throw sharedError;
+      sharedTransactions = sharedData || [];
+    }
+
+  // Merge owned and shared transactions
+    const allTransactions = [...(transactionsData || []), ...sharedTransactions];
+
+  // Fetch transaction shares separately to avoid complex join issues
+    const transactionIds = allTransactions.map((t) => t.id);
 
     interface ShareWithProfile {
       id: string;
@@ -411,9 +437,11 @@ export const fetchTransactionsWithShares = async (userId: string) => {
       // Combine shares with profile data
       sharesData = (shares || []).map((share) => ({
         ...share,
-        profiles: profilesData.find(
-          (p) => p.id === share.shared_with_user_id
-        ) || { full_name: null, email: "" },
+        profiles:
+          profilesData.find((p) => p.id === share.shared_with_user_id) || {
+            full_name: null,
+            email: "",
+          },
       }));
 
       console.log(
@@ -423,7 +451,7 @@ export const fetchTransactionsWithShares = async (userId: string) => {
     }
 
     // Combine transactions with their shares
-    const transformedData = (transactionsData || []).map((transaction) => {
+    const transformedData = allTransactions.map((transaction) => {
       const transactionShares = sharesData.filter(
         (share) => share.transaction_id === transaction.id
       );
@@ -438,11 +466,15 @@ export const fetchTransactionsWithShares = async (userId: string) => {
       };
     });
 
+    const sortedData = transformedData.sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+
     console.log(
       "fetchTransactionsWithShares: Final transformed data:",
-      transformedData
+      sortedData
     );
-    return transformedData;
+    return sortedData;
   } catch (error) {
     console.log("fetchTransactionsWithShares error", error);
     throw new Error("Erro ao buscar transações com compartilhamentos");
