@@ -3,11 +3,6 @@
     "bradlc.vscode-tailwindcss",
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
-    "ms-vscode.vscode-typescript-next",
-    "formulahendry.auto-rename-tag",
-    "christian-kohler.path-intellisense",
-    "streetsidesoftware.code-spell-checker",
-    "ms-vscode.vscode-json",
-    "yzhang.markdown-all-in-one"
+    "ms-vscode.vscode-json"
   ]
 }
