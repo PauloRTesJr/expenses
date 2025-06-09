@@ -6,7 +6,7 @@ import {
   TransactionFormData,
   TransactionShareInput,
   ProfileWithAvatar,
-  Tables,
+  TransactionWithCategory,
 } from "@/types/database";
 
 export const createClientSupabase = () => {
@@ -323,7 +323,7 @@ export const fetchTransactionsWithShares = async (userId: string) => {
 
     const { data: transactionsData, error } = await supabase
       .from("transactions")
-      .select(`*,category:categories(*)`)
+      .select<TransactionWithCategory[]>(`*,category:categories(*)`)
       .eq("user_id", userId)
       .order("date", { ascending: false });
 
@@ -345,11 +345,11 @@ export const fetchTransactionsWithShares = async (userId: string) => {
 
     const sharedTransactionIds = sharedIds?.map((s) => s.transaction_id) || [];
 
-    let sharedTransactions: Tables<"transactions">[] = [];
+    let sharedTransactions: TransactionWithCategory[] = [];
     if (sharedTransactionIds.length > 0) {
       const { data: sharedData, error: sharedError } = await supabase
         .from("transactions")
-        .select(`*,category:categories(*)`)
+        .select<TransactionWithCategory[]>(`*,category:categories(*)`)
         .in("id", sharedTransactionIds);
 
       if (sharedError) throw sharedError;
