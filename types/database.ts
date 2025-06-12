@@ -404,7 +404,7 @@ export type TransactionShareUpdate = TablesUpdate<"transaction_shares">;
 
 // Tipos compostos
 export type TransactionWithCategory = Transaction & {
-  categories: Category;
+  category: Category | null;
 };
 
 export type CategoryWithTransactions = Category & {
