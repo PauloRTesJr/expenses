@@ -39,7 +39,7 @@ export function TransactionHistory({
     const sorted = [...sharedFiltered].sort((a, b) => {
       if (sortBy === "date") {
         return (
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          new Date(b.date).getTime() - new Date(a.date).getTime()
         );
       }
 
