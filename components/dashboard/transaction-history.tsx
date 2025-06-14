@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
+import { useState, useMemo } from "react";
 import { TransactionWithShares } from "@/types/shared-transactions";
 import {
   CreditCard,
@@ -24,6 +25,33 @@ export function TransactionHistory({
 }: TransactionHistoryProps) {
   // Debug: log transactions to see if shares are included
   console.log("TransactionHistory transactions:", transactions);
+
+  const [showSharedOnly, setShowSharedOnly] = useState(false);
+  const [sortBy, setSortBy] = useState<"date" | "sharedBy">("date");
+
+  const displayedTransactions = useMemo(() => {
+    const sharedFiltered = showSharedOnly
+      ? transactions.filter(
+          (t) => t.transaction_shares && t.transaction_shares.length > 0
+        )
+      : transactions;
+
+    const sorted = [...sharedFiltered].sort((a, b) => {
+      if (sortBy === "date") {
+        return (
+          new Date(b.date).getTime() - new Date(a.date).getTime()
+        );
+      }
+
+      const aName =
+        a.transaction_shares[0]?.profiles?.full_name?.toLowerCase() || "";
+      const bName =
+        b.transaction_shares[0]?.profiles?.full_name?.toLowerCase() || "";
+      return aName.localeCompare(bName);
+    });
+
+    return sorted;
+  }, [transactions, showSharedOnly, sortBy]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -141,8 +169,25 @@ export function TransactionHistory({
               className="bg-gray-800 border border-gray-600 rounded-lg pl-10 pr-4 py-2 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          <button className="p-2 bg-gray-800 border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors">
+          <button
+            onClick={() => setShowSharedOnly((prev) => !prev)}
+            className="p-2 bg-gray-800 border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors"
+            aria-label="Toggle shared filter"
+          >
             <Filter className="w-4 h-4 text-gray-400" />
+          </button>
+          <button
+            onClick={() =>
+              setSortBy((prev) => (prev === "date" ? "sharedBy" : "date"))
+            }
+            className="p-2 bg-gray-800 border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors"
+            aria-label="Toggle sort mode"
+          >
+            {sortBy === "date" ? (
+              <Calendar className="w-4 h-4 text-gray-400" />
+            ) : (
+              <Users className="w-4 h-4 text-gray-400" />
+            )}
           </button>
         </div>
       </div>{" "}
@@ -157,7 +202,7 @@ export function TransactionHistory({
       {/* Transactions List */}
       <div className="space-y-2 max-h-96 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent hover:scrollbar-thumb-gray-500">
         <AnimatePresence>
-          {transactions.slice(0, 10).map((transaction, index) => (
+          {displayedTransactions.slice(0, 10).map((transaction, index) => (
             <motion.div
               key={transaction.id}
               initial={{ opacity: 0, x: -20 }}
@@ -308,14 +353,14 @@ export function TransactionHistory({
         </AnimatePresence>
       </div>
       {/* Footer */}
-      {transactions.length > 10 && (
+      {displayedTransactions.length > 10 && (
         <div className="flex justify-center mt-6">
           <button className="px-6 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded-lg text-sm text-white transition-colors">
             Ver todas as transações
           </button>
         </div>
       )}
-      {transactions.length === 0 && !isLoading && (
+      {displayedTransactions.length === 0 && !isLoading && (
         <div className="text-center py-12">
           <CreditCard className="w-12 h-12 text-gray-600 mx-auto mb-4" />
           <p className="text-gray-400 text-lg mb-2">
