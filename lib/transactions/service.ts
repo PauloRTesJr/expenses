@@ -1,44 +1,11 @@
-import { supabase } from "@/lib/supabase/client";
-import type {
-  TransactionFormData,
-  TransactionShareInput,
-  TransactionWithCategory,
-} from "@/types/database";
+import { supabase, fetchTransactionsWithShares } from "@/lib/supabase/client";
+import type { TransactionFormData, TransactionShareInput } from "@/types/database";
 import { handleError } from "@/lib/errors";
 
 export class TransactionsService {
   static async fetchTransactionsWithShares(userId: string) {
     try {
-      const { data: transactionsData, error } = await supabase
-        .from("transactions")
-        .select(`*, category:categories(*)`)
-        .eq("user_id", userId)
-        .order("date", { ascending: false });
-      if (error) throw error;
-
-      const { data: sharedIds, error: sharedIdsError } = await supabase
-        .from("transaction_shares")
-        .select("transaction_id")
-        .eq("shared_with_user_id", userId)
-        .eq("status", "accepted");
-      if (sharedIdsError) throw sharedIdsError;
-
-      const sharedTransactionIds = sharedIds?.map((s) => s.transaction_id) || [];
-      let sharedTransactions: TransactionWithCategory[] = [];
-
-      if (sharedTransactionIds.length > 0) {
-        const { data: sharedData, error: sharedError } = await supabase
-          .from("transactions")
-          .select(`*, category:categories(*)`)
-          .in("id", sharedTransactionIds);
-        if (sharedError) throw sharedError;
-        sharedTransactions = sharedData || [];
-      }
-
-      const allTransactions = [...(transactionsData || []), ...sharedTransactions];
-      return allTransactions.sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-      );
+      return await fetchTransactionsWithShares(userId);
     } catch (error) {
       handleError("fetchTransactionsWithShares", error);
       throw new Error("Erro ao buscar transações com compartilhamentos");

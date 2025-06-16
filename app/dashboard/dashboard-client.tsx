@@ -21,14 +21,15 @@ import { useProfile } from "@/hooks/use-profile";
 import {
   TransactionFormData,
   TransactionShareInput,
-  TransactionWithCategory,
 } from "@/types/database";
+import { TransactionWithCategoryAndShares } from "@/types/shared-transactions";
 import {
   createClientSupabase,
 } from "@/lib/supabase/client";
 import { TransactionsService } from "@/lib/transactions/service";
 import { User } from "@supabase/supabase-js";
-import { Plus, Bell, Search, LogOut, Wallet } from "lucide-react";
+import { Plus, Bell, Search, LogOut, Wallet, Users } from "lucide-react";
+import { SharedSummaryModal } from "@/components/dashboard/shared-summary-modal";
 
 interface DashboardClientProps {
   user: User;
@@ -55,11 +56,12 @@ export function DashboardClient(props: DashboardClientProps) {
 
 function DashboardInner({ user, categories }: DashboardClientProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSharedModalOpen, setIsSharedModalOpen] = useState(false);
   const queryClient = useQueryClient();
   const {
     data: transactions = [],
     isLoading,
-  } = useQuery<TransactionWithCategory[]>({
+  } = useQuery<TransactionWithCategoryAndShares[]>({
     queryKey: ["transactions", user.id],
     queryFn: () => TransactionsService.fetchTransactionsWithShares(user.id),
   });
@@ -77,7 +79,7 @@ function DashboardInner({ user, categories }: DashboardClientProps) {
 
   // Filtrar transações baseado nos filtros ativos
   const filteredTransactions = useMemo(() => {
-    return transactions.filter((transaction: TransactionWithCategory) => {
+    return transactions.filter((transaction: TransactionWithCategoryAndShares) => {
       const transactionDate = new Date(transaction.date);
       const monthStart = startOfMonth(filters.month);
       const monthEnd = endOfMonth(filters.month);
@@ -104,12 +106,12 @@ function DashboardInner({ user, categories }: DashboardClientProps) {
   // Calcular totais
   const totals = useMemo(() => {
     const income = filteredTransactions
-      .filter((t: TransactionWithCategory) => t.type === "income")
-      .reduce((sum: number, t: TransactionWithCategory) => sum + t.amount, 0);
+      .filter((t: TransactionWithCategoryAndShares) => t.type === "income")
+      .reduce((sum: number, t: TransactionWithCategoryAndShares) => sum + t.amount, 0);
 
     const expense = filteredTransactions
-      .filter((t: TransactionWithCategory) => t.type === "expense")
-      .reduce((sum: number, t: TransactionWithCategory) => sum + t.amount, 0);
+      .filter((t: TransactionWithCategoryAndShares) => t.type === "expense")
+      .reduce((sum: number, t: TransactionWithCategoryAndShares) => sum + t.amount, 0);
 
     // Calcular crescimento mensal (mock data por enquanto)
     const monthlyGrowth = 15.2;
@@ -231,6 +233,15 @@ function DashboardInner({ user, categories }: DashboardClientProps) {
                 <Plus className="w-4 h-4" />
                 <span>Nova Transação</span>
               </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setIsSharedModalOpen(true)}
+                className="bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 text-white px-3 py-2 rounded-xl text-sm font-medium shadow-lg transition-all duration-200 flex items-center space-x-2"
+              >
+                <Users className="w-4 h-4" />
+                <span>Calcular Receitas/Despesas Divididas</span>
+              </motion.button>
 
               <div className="flex items-center space-x-2">
                 <motion.button
@@ -317,6 +328,14 @@ function DashboardInner({ user, categories }: DashboardClientProps) {
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleTransactionSubmit}
         categories={categories}
+      />
+
+      <SharedSummaryModal
+        isOpen={isSharedModalOpen}
+        onClose={() => setIsSharedModalOpen(false)}
+        transactions={transactions}
+        currentUserId={user.id}
+        month={filters.month}
       />
 
       {/* Background Effects */}

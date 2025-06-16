@@ -1,4 +1,4 @@
-import { Transaction, Profile, TransactionShare as DatabaseTransactionShare } from "./database";
+import { Transaction, Profile, TransactionShare as DatabaseTransactionShare, Category } from "./database";
 
 // Tipos específicos para transações compartilhadas
 export interface TransactionShare {
@@ -162,3 +162,7 @@ export interface ShareCalculatorProps {
   shares: TransactionShareInput[];
   onChange: (shares: TransactionShareInput[]) => void;
 }
+
+export type TransactionWithCategoryAndShares = TransactionWithShares & {
+  category: Category | null;
+};

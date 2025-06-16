@@ -312,7 +312,11 @@ export const useAuthWithProfile = () => {
 /**
  * Buscar transações com informações de compartilhamento
  */
-export const fetchTransactionsWithShares = async (userId: string) => {
+import { TransactionWithCategoryAndShares } from "@/types/shared-transactions";
+
+export const fetchTransactionsWithShares = async (
+  userId: string,
+): Promise<TransactionWithCategoryAndShares[]> => {
   try {
     console.log(
       "fetchTransactionsWithShares: Fetching transactions for user:",
@@ -360,13 +364,13 @@ export const fetchTransactionsWithShares = async (userId: string) => {
   // Fetch transaction shares separately to avoid complex join issues
     const transactionIds = allTransactions.map((t) => t.id);
 
-    interface ShareWithProfile {
+  interface ShareWithProfile {
       id: string;
       transaction_id: string;
       shared_with_user_id: string;
-      share_type: string;
+      share_type: "equal" | "percentage" | "fixed_amount";
       share_value: number | null;
-      status: string;
+      status: "pending" | "accepted" | "declined";
       created_at: string;
       updated_at: string;
       profiles: {
@@ -435,6 +439,8 @@ export const fetchTransactionsWithShares = async (userId: string) => {
       // Combine shares with profile data
       sharesData = (shares || []).map((share) => ({
         ...share,
+        share_type: share.share_type as "equal" | "percentage" | "fixed_amount",
+        status: share.status as "pending" | "accepted" | "declined",
         profiles:
           profilesData.find((p) => p.id === share.shared_with_user_id) || {
             full_name: null,
