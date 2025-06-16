@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { TransactionForm } from "@/components/forms/transaction-form";
 import { MetricsCards } from "@/components/dashboard/metrics-cards";
 import { TransactionHistory } from "@/components/dashboard/transaction-history";
+import { SplitSummaryModal } from "@/components/dashboard/split-summary-modal";
 import dynamic from "next/dynamic";
 import type { MonthlyAndYearlyChartsProps } from "@/components/dashboard/monthly-and-yearly-charts";
 const MonthlyAndYearlyCharts = dynamic<MonthlyAndYearlyChartsProps>(
@@ -23,6 +24,7 @@ import {
   TransactionShareInput,
   TransactionWithCategory,
 } from "@/types/database";
+import { TransactionWithShares } from "@/types/shared-transactions";
 import {
   createClientSupabase,
 } from "@/lib/supabase/client";
@@ -55,6 +57,7 @@ export function DashboardClient(props: DashboardClientProps) {
 
 function DashboardInner({ user, categories }: DashboardClientProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSplitOpen, setIsSplitOpen] = useState(false);
   const queryClient = useQueryClient();
   const {
     data: transactions = [],
@@ -231,6 +234,14 @@ function DashboardInner({ user, categories }: DashboardClientProps) {
                 <Plus className="w-4 h-4" />
                 <span>Nova Transação</span>
               </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setIsSplitOpen(true)}
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-3 py-2 rounded-xl text-sm font-medium shadow-lg transition-all duration-200"
+              >
+                Calcular Receitas/Despesas Divididas
+              </motion.button>
 
               <div className="flex items-center space-x-2">
                 <motion.button
@@ -317,6 +328,14 @@ function DashboardInner({ user, categories }: DashboardClientProps) {
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleTransactionSubmit}
         categories={categories}
+      />
+
+      <SplitSummaryModal
+        isOpen={isSplitOpen}
+        onClose={() => setIsSplitOpen(false)}
+        transactions={transactions as unknown as TransactionWithShares[]}
+        month={filters.month}
+        currentUserId={user.id}
       />
 
       {/* Background Effects */}
