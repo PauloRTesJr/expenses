@@ -4,6 +4,7 @@ import { Modal } from "@/components/ui/modal";
 import { formatCurrency } from "@/lib/utils";
 import { calculateMonthlySharedSummary } from "@/lib/transactions/shared-summary";
 import type { TransactionWithCategoryAndShares } from "@/types/shared-transactions";
+import { Hash } from "lucide-react";
 
 interface SharedSummaryModalProps {
   isOpen: boolean;
@@ -12,6 +13,13 @@ interface SharedSummaryModalProps {
   currentUserId: string;
   month: Date;
 }
+
+const formatInstallment = (transaction: TransactionWithCategoryAndShares) => {
+  if (!transaction.is_installment) {
+    return "-";
+  }
+  return `${transaction.installment_current || 1}/${transaction.installment_count || 1}`;
+};
 
 export function SharedSummaryModal({
   isOpen,
@@ -103,14 +111,16 @@ export function SharedSummaryModal({
         </div>{" "}
         <div className="bg-[#1e1e1e] rounded-xl border border-gray-800 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-[#2a2a2a]">
+            <table className="w-full">              <thead className="bg-[#2a2a2a]">
                 <tr>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Descrição
                   </th>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Proprietário
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Parcelas
                   </th>
                   <th className="px-4 py-2 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Valor
@@ -143,15 +153,19 @@ export function SharedSummaryModal({
                         s.profiles.email.split("@")[0] ||
                         "User"
                       );
-                    });
-
-                  return (
+                    });                  return (
                     <tr key={tx.id} className="hover:bg-[#2a2a2a]">
                       <td className="px-4 py-2 text-sm text-white">
                         {tx.description}
                       </td>
                       <td className="px-4 py-2 text-sm text-purple-400">
                         {ownerDisplay}
+                      </td>
+                      <td className="px-4 py-2 text-sm text-orange-400">
+                        <div className="flex items-center">
+                          <Hash className="w-3 h-3 mr-1" />
+                          {formatInstallment(tx)}
+                        </div>
                       </td>
                       <td className="px-4 py-2 text-right">
                         <span
