@@ -7,11 +7,11 @@ import {
   CreditCard,
   TrendingUp,
   TrendingDown,
-  Calendar,
   Search,
   Filter,
   MoreHorizontal,
   Users,
+  Hash,
 } from "lucide-react";
 
 interface TransactionHistoryProps {
@@ -49,20 +49,11 @@ export function TransactionHistory({
 
     return sorted;
   }, [transactions, showSharedOnly, sortBy]);
-
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "BRL",
     }).format(amount);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
   };
 
   const getStatusColor = (type: string) => {
@@ -79,6 +70,16 @@ export function TransactionHistory({
   const getStatusLabel = (type: string) => {
     return type === "income" ? "Receita" : "Despesa";
   };
+  const formatInstallment = (transaction: TransactionWithCategoryAndShares) => {
+    if (!transaction.is_installment) {
+      return "-";
+    }
+
+    return `${transaction.installment_current || 1}/${
+      transaction.installment_count || 1
+    }`;
+  };
+
   const formatOwner = (transaction: TransactionWithCategoryAndShares) => {
     // Check if this transaction belongs to the current user
     if (transaction.user_id === currentUserId) {
@@ -195,8 +196,9 @@ export function TransactionHistory({
             className="p-2 bg-gray-800 border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors"
             aria-label="Toggle sort mode"
           >
+            {" "}
             {sortBy === "date" ? (
-              <Calendar className="w-4 h-4 text-gray-400" />
+              <Hash className="w-4 h-4 text-gray-400" />
             ) : (
               <Users className="w-4 h-4 text-gray-400" />
             )}
@@ -206,7 +208,7 @@ export function TransactionHistory({
       {/* Table Header */}
       <div className="hidden lg:grid lg:grid-cols-6 gap-4 text-sm font-medium text-gray-400 mb-4 px-4">
         <div className="min-w-0">Nome</div>
-        <div className="min-w-0">Data</div>
+        <div className="min-w-0">Parcelas</div>
         <div className="min-w-0">Proprietário</div>
         <div className="min-w-0">Compartilhamento</div>
         <div className="min-w-0 text-right">Valor</div>
@@ -247,7 +249,10 @@ export function TransactionHistory({
                         {transaction.description}
                       </p>{" "}
                       <div className="flex items-center space-x-2 text-xs text-gray-400">
-                        <span>{formatDate(transaction.date)}</span>
+                        <span className="text-orange-400 flex items-center">
+                          <Hash className="w-3 h-3 mr-1" />
+                          {formatInstallment(transaction)}
+                        </span>
                         <span>•</span>
                         <span className="text-purple-400 flex items-center">
                           <CreditCard className="w-3 h-3 mr-1" />
@@ -311,16 +316,14 @@ export function TransactionHistory({
                       {transaction.description}
                     </p>
                   </div>
-                </div>
-
-                {/* Data */}
+                </div>{" "}
+                {/* Parcelas */}
                 <div className="flex items-center text-gray-400 min-w-0">
-                  <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <Hash className="w-4 h-4 mr-2 flex-shrink-0" />
                   <span className="text-sm truncate">
-                    {formatDate(transaction.date)}
+                    {formatInstallment(transaction)}
                   </span>
                 </div>
-
                 {/* Proprietário */}
                 <div className="min-w-0">
                   <div className="flex items-center text-purple-400">
@@ -330,7 +333,6 @@ export function TransactionHistory({
                     </span>
                   </div>
                 </div>
-
                 {/* Compartilhamento */}
                 <div className="min-w-0">
                   {formatSharedUsers(transaction) ? (
@@ -344,7 +346,6 @@ export function TransactionHistory({
                     <span className="text-sm text-gray-500">-</span>
                   )}
                 </div>
-
                 {/* Valor */}
                 <div className="text-right min-w-0">
                   <p
@@ -358,7 +359,6 @@ export function TransactionHistory({
                     {formatCurrency(Math.abs(transaction.amount))}
                   </p>
                 </div>
-
                 {/* Status */}
                 <div className="flex items-center justify-center min-w-0">
                   <div className="flex items-center">

@@ -32,7 +32,12 @@ function tx(
   id: string,
   desc: string,
   created: string,
-  shares: any[] = []
+  shares: any[] = [],
+  installmentData?: {
+    is_installment: boolean;
+    installment_current?: number;
+    installment_count?: number;
+  }
 ): TransactionWithCategoryAndShares {
   return {
     ...baseTx,
@@ -42,6 +47,9 @@ function tx(
     transaction_shares: shares,
     category: null,
     owner_profile: null,
+    is_installment: installmentData?.is_installment || false,
+    installment_current: installmentData?.installment_current || null,
+    installment_count: installmentData?.installment_count || null,
   } as TransactionWithCategoryAndShares;
 }
 
@@ -105,5 +113,30 @@ describe("TransactionHistory filters and sorting", () => {
     await waitFor(() => {
       expect(container.querySelectorAll(".group")).toHaveLength(2);
     });
+  });
+  it("displays installment information correctly", () => {
+    const data = [
+      tx("1", "Regular Transaction", "2024-06-10"),
+      tx("2", "Installment Transaction", "2024-06-10", [], {
+        is_installment: true,
+        installment_current: 2,
+        installment_count: 5,
+      }),
+    ];
+    render(
+      <TransactionHistory
+        transactions={data}
+        isLoading={false}
+        currentUserId="current-user-id"
+      />
+    );
+
+    // Should show "-" for non-installment transactions and "2/5" for installment transactions
+    const allDashElements = screen.getAllByText("-");
+    expect(allDashElements.length).toBeGreaterThan(0);
+
+    // Should show "2/5" for installment transactions (appears in both mobile and desktop layouts)
+    const installmentElements = screen.getAllByText("2/5");
+    expect(installmentElements.length).toBeGreaterThan(0);
   });
 });
