@@ -7,7 +7,6 @@ import {
   TransactionFormData,
   TransactionShareInput,
   ProfileWithAvatar,
-  TransactionWithCategory,
 } from "@/types/database";
 
 export const createClientSupabase = () => {
@@ -325,15 +324,19 @@ export const fetchTransactionsWithShares = async (
 
     const { data: transactionsData, error } = await supabase
       .from("transactions")
-      .select(`*, category:categories(*)`)
+      .select(
+        `*, category:categories(*), owner:profiles(id, full_name, email)`,
+      )
       .eq("user_id", userId)
       .order("date", { ascending: false });
+    const typedTransactions =
+      (transactionsData as unknown as TransactionWithCategoryAndShares[]) || [];
 
     if (error) throw error;
 
     console.log(
       "fetchTransactionsWithShares: Found transactions:",
-      transactionsData?.length
+      typedTransactions.length,
     );
 
     // Fetch transactions shared with the user
@@ -347,19 +350,22 @@ export const fetchTransactionsWithShares = async (
 
     const sharedTransactionIds = sharedIds?.map((s) => s.transaction_id) || [];
 
-    let sharedTransactions: TransactionWithCategory[] = [];
+    let sharedTransactions: TransactionWithCategoryAndShares[] = [];
     if (sharedTransactionIds.length > 0) {
       const { data: sharedData, error: sharedError } = await supabase
         .from("transactions")
-        .select(`*, category:categories(*)`)
+        .select(
+          `*, category:categories(*), owner:profiles(id, full_name, email)`,
+        )
         .in("id", sharedTransactionIds);
 
       if (sharedError) throw sharedError;
-      sharedTransactions = sharedData || [];
+      sharedTransactions =
+        (sharedData as unknown as TransactionWithCategoryAndShares[]) || [];
     }
 
   // Merge owned and shared transactions
-    const allTransactions = [...(transactionsData || []), ...sharedTransactions];
+    const allTransactions = [...typedTransactions, ...sharedTransactions];
 
   // Fetch transaction shares separately to avoid complex join issues
     const transactionIds = allTransactions.map((t) => t.id);

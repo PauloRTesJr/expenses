@@ -3,12 +3,13 @@
 import { Modal } from "@/components/ui/modal";
 import { formatCurrency } from "@/lib/utils";
 import { calculateMonthlySharedSummary } from "@/lib/transactions/shared-summary";
-import type { TransactionWithShares } from "@/types/shared-transactions";
+import type { TransactionWithCategoryAndShares } from "@/types/shared-transactions";
+import { startOfMonth, endOfMonth } from "date-fns";
 
 interface SharedSummaryModalProps {
   isOpen: boolean;
   onClose: () => void;
-  transactions: TransactionWithShares[];
+  transactions: TransactionWithCategoryAndShares[];
   currentUserId: string;
   month: Date;
 }
@@ -21,6 +22,18 @@ export function SharedSummaryModal({
   month,
 }: SharedSummaryModalProps) {
   const summary = calculateMonthlySharedSummary(transactions, currentUserId, month);
+  const monthStart = startOfMonth(month);
+  const monthEnd = endOfMonth(month);
+
+  const sharedTx = transactions.filter((tx) => {
+    const txDate = new Date(tx.date);
+    if (txDate < monthStart || txDate > monthEnd) return false;
+    return tx.transaction_shares.some(
+      (s) =>
+        s.status === "accepted" &&
+        (tx.user_id === currentUserId || s.shared_with_user_id === currentUserId),
+    );
+  });
 
   return (
     <Modal
@@ -76,6 +89,47 @@ export function SharedSummaryModal({
               </p>
             </div>
           ))}
+        </div>
+        <div>
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="text-gray-400 text-left">
+                <th className="py-2">Nome</th>
+                <th className="py-2 text-right">Valor</th>
+                <th className="py-2">Compartilhado com</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sharedTx.map((tx) => {
+                const otherNames = tx.user_id === currentUserId
+                  ? tx.transaction_shares
+                      .filter((s) => s.status === "accepted")
+                      .map(
+                        (s) =>
+                          s.profiles.full_name ||
+                          s.profiles.email.split("@")[0],
+                      )
+                      .join(", ")
+                  : tx.owner.full_name || tx.owner.email.split("@")[0];
+                return (
+                  <tr key={tx.id} className="border-t border-gray-700">
+                    <td className="py-2 text-gray-300">{tx.description}</td>
+                    <td
+                      className={`py-2 text-right font-semibold ${
+                        tx.type === "income"
+                          ? "text-emerald-400"
+                          : "text-red-400"
+                      }`}
+                    >
+                      {tx.type === "expense" ? "-" : "+"}
+                      {formatCurrency(tx.amount)}
+                    </td>
+                    <td className="py-2 text-gray-300">{otherNames}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
     </Modal>

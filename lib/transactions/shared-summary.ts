@@ -6,10 +6,13 @@ export interface SharedSummary {
   balance: number;
 }
 
-import { TransactionWithShares, TransactionShare } from "@/types/shared-transactions";
+import {
+  TransactionWithCategoryAndShares,
+  TransactionShare,
+} from "@/types/shared-transactions";
 
 function computeShareAmount(
-  transaction: TransactionWithShares,
+  transaction: TransactionWithCategoryAndShares,
   share: TransactionShare & { profiles: { full_name?: string | null; email?: string | null } },
 ): number {
   switch (share.share_type) {
@@ -24,7 +27,7 @@ function computeShareAmount(
 }
 
 export function calculateMonthlySharedSummary(
-  transactions: TransactionWithShares[],
+  transactions: TransactionWithCategoryAndShares[],
   currentUserId: string,
   month: Date,
 ): SharedSummary[] {
@@ -45,8 +48,13 @@ export function calculateMonthlySharedSummary(
           // not related to current user
           return;
         }
-        const userName =
-          share.profiles?.full_name || share.profiles?.email?.split("@")[0] || "User";
+        const userName = tx.user_id === currentUserId
+          ? share.profiles?.full_name ||
+            share.profiles?.email?.split("@")[0] ||
+            "User"
+          : tx.owner?.full_name ||
+            tx.owner?.email?.split("@")[0] ||
+            "User";
         if (!summaries[otherId]) {
           summaries[otherId] = {
             userId: otherId,

@@ -20,6 +20,7 @@ const ownTransaction = {
   type: "income" as const,
   category_id: "c1",
   date: "2024-06-01",
+  owner: { full_name: "Owner1", email: "o1@example.com" },
 };
 
 const sharedTransaction = {
@@ -29,6 +30,7 @@ const sharedTransaction = {
   type: "expense" as const,
   category_id: "c2",
   date: "2024-06-02",
+  owner: { full_name: "Owner2", email: "o2@example.com" },
 };
 
 const shareRecords = [

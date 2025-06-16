@@ -1,5 +1,5 @@
 import { calculateMonthlySharedSummary } from "../lib/transactions/shared-summary";
-import { TransactionWithShares } from "../types/shared-transactions";
+import { TransactionWithCategoryAndShares } from "../types/shared-transactions";
 
 const createShare = (userId: string) => ({
   id: "s" + userId,
@@ -15,7 +15,7 @@ const createShare = (userId: string) => ({
 
 describe("calculateMonthlySharedSummary", () => {
   it("computes balances correctly", () => {
-    const transactions: TransactionWithShares[] = [
+    const transactions: TransactionWithCategoryAndShares[] = [
       {
         id: "t1",
         description: "A",
@@ -30,6 +30,7 @@ describe("calculateMonthlySharedSummary", () => {
         installment_count: null,
         installment_current: null,
         installment_group_id: null,
+        owner: { full_name: "u1", email: "u1@x.com" },
         transaction_shares: [createShare("u2")],
       },
       {
@@ -46,6 +47,7 @@ describe("calculateMonthlySharedSummary", () => {
         installment_count: null,
         installment_current: null,
         installment_group_id: null,
+        owner: { full_name: "u2", email: "u2@x.com" },
         transaction_shares: [createShare("u1")],
       },
       {
@@ -62,6 +64,7 @@ describe("calculateMonthlySharedSummary", () => {
         installment_count: null,
         installment_current: null,
         installment_group_id: null,
+        owner: { full_name: "u2", email: "u2@x.com" },
         transaction_shares: [createShare("u1")],
       },
     ];

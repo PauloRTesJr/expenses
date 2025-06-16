@@ -165,4 +165,5 @@ export interface ShareCalculatorProps {
 
 export type TransactionWithCategoryAndShares = TransactionWithShares & {
   category: Category | null;
+  owner: Pick<Profile, "full_name" | "email">;
 };
