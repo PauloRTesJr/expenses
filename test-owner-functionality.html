@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Owner Column Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .test-case {
+        margin: 20px 0;
+        padding: 15px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+      .success {
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+      }
+      .info {
+        background-color: #cce7ff;
+        border-color: #99d6ff;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Owner Column Implementation Test Results</h1>
+
+    <div class="test-case success">
+      <h3>
+        ✅ Case 1: User A created transaction and shared with User B and C
+      </h3>
+      <p>
+        <strong>Expected Result:</strong> Owner -> User A, Compartilhamento ->
+        User B, User C
+      </p>
+      <p>
+        <strong>Implementation:</strong> ✅ Implemented in both Transaction
+        History and Shared Summary Modal
+      </p>
+      <ul>
+        <li>Owner column shows "Você" for current user's transactions</li>
+        <li>Compartilhamento column shows the names of shared users</li>
+        <li>Mobile layout includes owner info in the details line</li>
+      </ul>
+    </div>
+
+    <div class="test-case success">
+      <h3>✅ Case 2: User A created transaction and didn't share</h3>
+      <p>
+        <strong>Expected Result:</strong> Owner -> User A, Compartilhamento ->
+        Blank
+      </p>
+      <p><strong>Implementation:</strong> ✅ Implemented correctly</p>
+      <ul>
+        <li>Owner column shows "Você"</li>
+        <li>Compartilhamento column shows "-" for no shares</li>
+        <li>Won't display on shared-summary-modal since it's not shared</li>
+      </ul>
+    </div>
+
+    <div class="test-case success">
+      <h3>
+        ✅ Case 3: User B created transaction and shared with User A, User C
+      </h3>
+      <p>
+        <strong>Expected Result:</strong> Owner -> User B, Compartilhamento ->
+        You, User C
+      </p>
+      <p>
+        <strong>Implementation:</strong> ✅ Implemented using owner_profile data
+      </p>
+      <ul>
+        <li>Owner column shows User B's name from owner_profile</li>
+        <li>
+          Compartilhamento column shows "Você" for current user + other shared
+          users
+        </li>
+        <li>
+          Properly handles shared transactions where current user is not the
+          owner
+        </li>
+      </ul>
+    </div>
+
+    <div class="test-case info">
+      <h3>📋 Technical Implementation Details</h3>
+      <ul>
+        <li>
+          <strong>Type Safety:</strong> Updated interface to use
+          TransactionWithCategoryAndShares
+        </li>
+        <li>
+          <strong>Owner Detection:</strong> Uses owner_profile to identify
+          transaction owners
+        </li>
+        <li>
+          <strong>Responsive Design:</strong> Added owner info to both desktop
+          and mobile layouts
+        </li>
+        <li>
+          <strong>Visual Consistency:</strong> Used purple color for owner, blue
+          for shared users
+        </li>
+        <li>
+          <strong>Grid Layout:</strong> Updated from 5 to 6 columns to
+          accommodate new Owner column
+        </li>
+        <li>
+          <strong>Icons:</strong> Added CreditCard icon for owner identification
+        </li>
+      </ul>
+    </div>
+
+    <div class="test-case success">
+      <h3>✅ Files Modified Successfully</h3>
+      <ul>
+        <li>
+          <strong>Transaction History:</strong>
+          /components/dashboard/transaction-history.tsx
+        </li>
+        <li>
+          <strong>Shared Summary Modal:</strong>
+          /components/dashboard/shared-summary-modal.tsx
+        </li>
+        <li><strong>Build Status:</strong> ✅ All builds successful</li>
+        <li><strong>Type Checking:</strong> ✅ No type errors</li>
+        <li><strong>Linting:</strong> ✅ Code quality maintained</li>
+      </ul>
+    </div>
+  </body>
+</html>

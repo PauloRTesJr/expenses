@@ -67,13 +67,19 @@ function setupMocks() {
     in: jest.fn(() => Promise.resolve({ data: profileData, error: null })),
   };
 
+  const ownerProfilesChain: any = {
+    select: jest.fn(() => ownerProfilesChain),
+    in: jest.fn(() => Promise.resolve({ data: profileData, error: null })),
+  };
+
   supabaseMock.from.mockReset();
   supabaseMock.from
     .mockImplementationOnce(() => transactionsChain)
     .mockImplementationOnce(() => sharedIdsChain)
     .mockImplementationOnce(() => sharedTransChain)
     .mockImplementationOnce(() => sharesChain)
-    .mockImplementationOnce(() => profilesChain);
+    .mockImplementationOnce(() => profilesChain)
+    .mockImplementationOnce(() => ownerProfilesChain);
 }
 
 function setupMocksNoOwn() {
@@ -105,13 +111,19 @@ function setupMocksNoOwn() {
     in: jest.fn(() => Promise.resolve({ data: profileData, error: null })),
   };
 
+  const ownerProfilesChain: any = {
+    select: jest.fn(() => ownerProfilesChain),
+    in: jest.fn(() => Promise.resolve({ data: profileData, error: null })),
+  };
+
   supabaseMock.from.mockReset();
   supabaseMock.from
     .mockImplementationOnce(() => transactionsChain)
     .mockImplementationOnce(() => sharedIdsChain)
     .mockImplementationOnce(() => sharedTransChain)
     .mockImplementationOnce(() => sharesChain)
-    .mockImplementationOnce(() => profilesChain);
+    .mockImplementationOnce(() => profilesChain)
+    .mockImplementationOnce(() => ownerProfilesChain);
 }
 
 describe("fetchTransactionsWithShares", () => {
@@ -119,6 +131,7 @@ describe("fetchTransactionsWithShares", () => {
     setupMocks();
     const data = await fetchTransactionsWithShares("u1");
     expect(data).toHaveLength(2);
+    expect(data[0]).toHaveProperty("owner_profile");
   });
 
   it("returns shared transactions when user has none", async () => {

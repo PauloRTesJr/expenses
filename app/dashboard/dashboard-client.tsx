@@ -15,26 +15,26 @@ const MonthlyAndYearlyCharts = dynamic<MonthlyAndYearlyChartsProps>(
     ),
   { ssr: false }
 );
-import { useQuery, QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
+import {
+  useQuery,
+  QueryClient,
+  QueryClientProvider,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { UserAvatar } from "@/components/profile/user-avatar";
 import { useProfile } from "@/hooks/use-profile";
-import {
-  TransactionFormData,
-  TransactionShareInput,
-  TransactionWithCategory,
-} from "@/types/database";
-import {
-  createClientSupabase,
-} from "@/lib/supabase/client";
+import { TransactionFormData, TransactionShareInput } from "@/types/database";
+import { TransactionWithCategoryAndShares } from "@/types/shared-transactions";
+import { createClientSupabase } from "@/lib/supabase/client";
 import { TransactionsService } from "@/lib/transactions/service";
 import { User } from "@supabase/supabase-js";
-import { Plus, Bell, Search, LogOut, Wallet } from "lucide-react";
+import { Plus, Bell, Search, LogOut, Wallet, Users } from "lucide-react";
+import { SharedSummaryModal } from "@/components/dashboard/shared-summary-modal";
 
 interface DashboardClientProps {
   user: User;
   categories: Array<{ id: string; name: string; type: "income" | "expense" }>;
 }
-
 
 interface FilterState {
   month: Date;
@@ -55,11 +55,11 @@ export function DashboardClient(props: DashboardClientProps) {
 
 function DashboardInner({ user, categories }: DashboardClientProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSharedModalOpen, setIsSharedModalOpen] = useState(false);
   const queryClient = useQueryClient();
-  const {
-    data: transactions = [],
-    isLoading,
-  } = useQuery<TransactionWithCategory[]>({
+  const { data: transactions = [], isLoading } = useQuery<
+    TransactionWithCategoryAndShares[]
+  >({
     queryKey: ["transactions", user.id],
     queryFn: () => TransactionsService.fetchTransactionsWithShares(user.id),
   });
@@ -77,39 +77,48 @@ function DashboardInner({ user, categories }: DashboardClientProps) {
 
   // Filtrar transações baseado nos filtros ativos
   const filteredTransactions = useMemo(() => {
-    return transactions.filter((transaction: TransactionWithCategory) => {
-      const transactionDate = new Date(transaction.date);
-      const monthStart = startOfMonth(filters.month);
-      const monthEnd = endOfMonth(filters.month);
+    return transactions.filter(
+      (transaction: TransactionWithCategoryAndShares) => {
+        const transactionDate = new Date(transaction.date);
+        const monthStart = startOfMonth(filters.month);
+        const monthEnd = endOfMonth(filters.month);
 
-      const isInMonth =
-        transactionDate >= monthStart && transactionDate <= monthEnd;
+        const isInMonth =
+          transactionDate >= monthStart && transactionDate <= monthEnd;
 
-      const matchesSearch =
-        filters.search === "" ||
-        transaction.description
-          .toLowerCase()
-          .includes(filters.search.toLowerCase());
+        const matchesSearch =
+          filters.search === "" ||
+          transaction.description
+            .toLowerCase()
+            .includes(filters.search.toLowerCase());
 
-      const matchesCategory =
-        !filters.category_id || transaction.category_id === filters.category_id;
+        const matchesCategory =
+          !filters.category_id ||
+          transaction.category_id === filters.category_id;
 
-      const matchesType =
-        filters.type === "all" || transaction.type === filters.type;
+        const matchesType =
+          filters.type === "all" || transaction.type === filters.type;
 
-      return isInMonth && matchesSearch && matchesCategory && matchesType;
-    });
+        return isInMonth && matchesSearch && matchesCategory && matchesType;
+      }
+    );
   }, [transactions, filters]);
 
   // Calcular totais
   const totals = useMemo(() => {
     const income = filteredTransactions
-      .filter((t: TransactionWithCategory) => t.type === "income")
-      .reduce((sum: number, t: TransactionWithCategory) => sum + t.amount, 0);
+      .filter((t: TransactionWithCategoryAndShares) => t.type === "income")
+      .reduce(
+        (sum: number, t: TransactionWithCategoryAndShares) => sum + t.amount,
+        0
+      );
 
     const expense = filteredTransactions
-      .filter((t: TransactionWithCategory) => t.type === "expense")
-      .reduce((sum: number, t: TransactionWithCategory) => sum + t.amount, 0);
+      .filter((t: TransactionWithCategoryAndShares) => t.type === "expense")
+      .reduce(
+        (sum: number, t: TransactionWithCategoryAndShares) => sum + t.amount,
+        0
+      );
 
     // Calcular crescimento mensal (mock data por enquanto)
     const monthlyGrowth = 15.2;
@@ -176,7 +185,9 @@ function DashboardInner({ user, categories }: DashboardClientProps) {
         if (error) throw error;
       }
 
-      await queryClient.invalidateQueries({ queryKey: ["transactions", user.id] });
+      await queryClient.invalidateQueries({
+        queryKey: ["transactions", user.id],
+      });
       setIsModalOpen(false);
     } catch (error) {
       console.error("Erro ao salvar transação:", error);
@@ -230,6 +241,15 @@ function DashboardInner({ user, categories }: DashboardClientProps) {
               >
                 <Plus className="w-4 h-4" />
                 <span>Nova Transação</span>
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setIsSharedModalOpen(true)}
+                className="bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 text-white px-3 py-2 rounded-xl text-sm font-medium shadow-lg transition-all duration-200 flex items-center space-x-2"
+              >
+                <Users className="w-4 h-4" />
+                <span>Calcular Receitas/Despesas Divididas</span>
               </motion.button>
 
               <div className="flex items-center space-x-2">
@@ -296,14 +316,13 @@ function DashboardInner({ user, categories }: DashboardClientProps) {
           onMonthChange={(newMonth) =>
             setFilters((prev) => ({ ...prev, month: newMonth }))
           }
-        />
-
+        />{" "}
         {/* Transaction History */}
         <TransactionHistory
           transactions={filteredTransactions}
           isLoading={isLoading}
+          currentUserId={user.id}
         />
-
         {/* Monthly and Yearly Charts - Side by Side */}
         <MonthlyAndYearlyCharts
           transactions={transactions}
@@ -317,6 +336,14 @@ function DashboardInner({ user, categories }: DashboardClientProps) {
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleTransactionSubmit}
         categories={categories}
+      />
+
+      <SharedSummaryModal
+        isOpen={isSharedModalOpen}
+        onClose={() => setIsSharedModalOpen(false)}
+        transactions={transactions}
+        currentUserId={user.id}
+        month={filters.month}
       />
 
       {/* Background Effects */}
