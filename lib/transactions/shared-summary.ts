@@ -38,10 +38,13 @@ export function calculateMonthlySharedSummary(
   const monthStart = new Date(month.getFullYear(), month.getMonth(), 1);
   const monthEnd = new Date(month.getFullYear(), month.getMonth() + 1, 0);
 
-  transactions.forEach((tx) => {
-    const txDate = new Date(tx.date);
-    if (txDate < monthStart || txDate > monthEnd) return;
+  const precomputedDates = transactions.map((tx) => ({
+    ...tx,
+    parsedDate: new Date(tx.date),
+  }));
 
+  precomputedDates.forEach((tx) => {
+    if (tx.parsedDate < monthStart || tx.parsedDate > monthEnd) return;
     tx.transaction_shares
       .filter((s) => s.status === "accepted")
       .forEach((share) => {
