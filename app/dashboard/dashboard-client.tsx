@@ -15,7 +15,7 @@ const MonthlyAndYearlyCharts = dynamic<MonthlyAndYearlyChartsProps>(
     ),
   { ssr: false }
 );
-import { useQuery, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useQuery, QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { UserAvatar } from "@/components/profile/user-avatar";
 import { useProfile } from "@/hooks/use-profile";
 import {
@@ -43,9 +43,19 @@ interface FilterState {
   type?: "income" | "expense" | "all";
 }
 
-export function DashboardClient({ user, categories }: DashboardClientProps) {
+export function DashboardClient(props: DashboardClientProps) {
+  const [queryClient] = useState(() => new QueryClient());
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <DashboardInner {...props} />
+    </QueryClientProvider>
+  );
+}
+
+function DashboardInner({ user, categories }: DashboardClientProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const queryClient = new QueryClient();
+  const queryClient = useQueryClient();
   const {
     data: transactions = [],
     isLoading,
@@ -175,8 +185,7 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
   };
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       {/* Header moderno */}
       <motion.header
         initial={{ opacity: 0, y: -20 }}
@@ -316,6 +325,5 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl"></div>
       </div>
     </div>
-    </QueryClientProvider>
   );
 }
