@@ -18,7 +18,18 @@ const formatInstallment = (transaction: TransactionWithCategoryAndShares) => {
   if (!transaction.is_installment) {
     return "-";
   }
-  return `${transaction.installment_current || 1}/${transaction.installment_count || 1}`;
+  return `${transaction.installment_current || 1}/${
+    transaction.installment_count || 1
+  }`;
+};
+
+// Função para obter o valor da parcela individual (não o total)
+const getTransactionDisplayAmount = (
+  transaction: TransactionWithCategoryAndShares
+) => {
+  // Para o modal de resumo mensal, sempre mostra o valor da parcela individual
+  // que é o valor relevante para os cálculos do mês
+  return transaction.amount;
 };
 
 export function SharedSummaryModal({
@@ -35,22 +46,26 @@ export function SharedSummaryModal({
   );
   const monthStart = new Date(month.getFullYear(), month.getMonth(), 1);
   const monthEnd = new Date(month.getFullYear(), month.getMonth() + 1, 0);
+  const monthTransactions = transactions
+    .filter((tx) => {
+      const txDate = new Date(tx.date);
+      const isInDateRange = txDate >= monthStart && txDate <= monthEnd;
+      // Include transactions that are either:
+      // 1. Owned by current user and have shares, OR
+      // 2. Shared with current user (regardless of who owns them)
+      const isRelevantToUser =
+        (tx.user_id === currentUserId && tx.transaction_shares.length > 0) ||
+        tx.transaction_shares.some(
+          (s) =>
+            s.status === "accepted" && s.shared_with_user_id === currentUserId
+        );
 
-  const monthTransactions = transactions.filter((tx) => {
-    const txDate = new Date(tx.date);
-    const isInDateRange = txDate >= monthStart && txDate <= monthEnd;
-    // Include transactions that are either:
-    // 1. Owned by current user and have shares, OR
-    // 2. Shared with current user (regardless of who owns them)
-    const isRelevantToUser =
-      (tx.user_id === currentUserId && tx.transaction_shares.length > 0) ||
-      tx.transaction_shares.some(
-        (s) =>
-          s.status === "accepted" && s.shared_with_user_id === currentUserId
-      );
-
-    return isInDateRange && isRelevantToUser;
-  });
+      return isInDateRange && isRelevantToUser;
+    })
+    .sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
 
   return (
     <Modal
@@ -111,7 +126,9 @@ export function SharedSummaryModal({
         </div>{" "}
         <div className="bg-[#1e1e1e] rounded-xl border border-gray-800 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full">              <thead className="bg-[#2a2a2a]">
+            <table className="w-full">
+              {" "}
+              <thead className="bg-[#2a2a2a]">
                 <tr>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Descrição
@@ -153,7 +170,8 @@ export function SharedSummaryModal({
                         s.profiles.email.split("@")[0] ||
                         "User"
                       );
-                    });                  return (
+                    });
+                  return (
                     <tr key={tx.id} className="hover:bg-[#2a2a2a]">
                       <td className="px-4 py-2 text-sm text-white">
                         {tx.description}
@@ -176,7 +194,9 @@ export function SharedSummaryModal({
                           }`}
                         >
                           {tx.type === "income" ? "+" : "-"}
-                          {formatCurrency(Math.abs(tx.amount))}
+                          {formatCurrency(
+                            Math.abs(getTransactionDisplayAmount(tx))
+                          )}
                         </span>
                       </td>
                       <td className="px-4 py-2 text-sm text-gray-300">

@@ -34,10 +34,11 @@ export function TransactionHistory({
           (t) => t.transaction_shares && t.transaction_shares.length > 0
         )
       : transactions;
-
     const sorted = [...sharedFiltered].sort((a, b) => {
       if (sortBy === "date") {
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
+        return (
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
       }
 
       const aName =
@@ -78,6 +79,14 @@ export function TransactionHistory({
     return `${transaction.installment_current || 1}/${
       transaction.installment_count || 1
     }`;
+  };
+  // Função para obter o valor da parcela individual (não o total)
+  const getTransactionDisplayAmount = (
+    transaction: TransactionWithCategoryAndShares
+  ) => {
+    // Para o histórico de transações, mostra o valor da parcela individual
+    // que é o valor relevante para cada mês
+    return transaction.amount;
   };
 
   const formatOwner = (transaction: TransactionWithCategoryAndShares) => {
@@ -271,6 +280,7 @@ export function TransactionHistory({
                     </div>
                   </div>
                   <div className="text-right flex-shrink-0 ml-4">
+                    {" "}
                     <p
                       className={`font-bold text-lg ${
                         transaction.type === "income"
@@ -279,7 +289,9 @@ export function TransactionHistory({
                       }`}
                     >
                       {transaction.type === "income" ? "+" : "-"}
-                      {formatCurrency(Math.abs(transaction.amount))}
+                      {formatCurrency(
+                        Math.abs(getTransactionDisplayAmount(transaction))
+                      )}
                     </p>
                     <div className="flex items-center justify-end mt-1">
                       <div
@@ -356,7 +368,9 @@ export function TransactionHistory({
                     }`}
                   >
                     {transaction.type === "income" ? "+" : "-"}
-                    {formatCurrency(Math.abs(transaction.amount))}
+                    {formatCurrency(
+                      Math.abs(getTransactionDisplayAmount(transaction))
+                    )}
                   </p>
                 </div>
                 {/* Status */}
