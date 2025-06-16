@@ -6,12 +6,14 @@ jest.mock("../lib/errors", () => ({ handleError: jest.fn() }));
 
 var supabase: any;
 var chain: any;
+var fetchTransactionsWithShares: any;
 
 jest.mock("../lib/supabase/client", () => {
   const mock = require("../tests/utils/supabaseMock").createSupabaseMock();
   supabase = mock.supabase;
   chain = mock.chain;
-  return { supabase };
+  fetchTransactionsWithShares = jest.fn();
+  return { supabase, fetchTransactionsWithShares };
 });
 
 describe("TransactionsService", () => {
@@ -20,14 +22,14 @@ describe("TransactionsService", () => {
   });
 
   it("handles fetch error", async () => {
-    chain.select.mockReturnValue(chain);
-    chain.eq.mockReturnValue(chain);
-    chain.order.mockResolvedValue({ data: null, error: new Error("fail") });
-    supabase.from.mockReturnValue(chain);
+    fetchTransactionsWithShares.mockRejectedValue(new Error("fail"));
     const spy = jest.spyOn(errors, "handleError");
-    await expect(TransactionsService.fetchTransactionsWithShares("u1")).rejects.toThrow(
-      "Erro ao buscar transações com compartilhamentos"
+    await expect(
+      TransactionsService.fetchTransactionsWithShares("u1")
+    ).rejects.toThrow("Erro ao buscar transações com compartilhamentos");
+    expect(spy).toHaveBeenCalledWith(
+      "fetchTransactionsWithShares",
+      expect.any(Error)
     );
-    expect(spy).toHaveBeenCalledWith("fetchTransactionsWithShares", expect.any(Error));
   });
 });

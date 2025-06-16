@@ -312,7 +312,11 @@ export const useAuthWithProfile = () => {
 /**
  * Buscar transações com informações de compartilhamento
  */
-export const fetchTransactionsWithShares = async (userId: string) => {
+import { TransactionWithCategoryAndShares } from "@/types/shared-transactions";
+
+export const fetchTransactionsWithShares = async (
+  userId: string,
+): Promise<TransactionWithCategoryAndShares[]> => {
   try {
     console.log(
       "fetchTransactionsWithShares: Fetching transactions for user:",
@@ -357,16 +361,30 @@ export const fetchTransactionsWithShares = async (userId: string) => {
   // Merge owned and shared transactions
     const allTransactions = [...(transactionsData || []), ...sharedTransactions];
 
+  // Fetch owner profiles
+    const ownerIds = Array.from(new Set(allTransactions.map((t) => t.user_id)));
+    let ownerProfiles: { id: string; full_name: string | null; email: string }[] = [];
+
+    if (ownerIds.length > 0) {
+      const { data: profiles, error: ownerError } = await supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .in("id", ownerIds);
+
+      if (ownerError) throw ownerError;
+      ownerProfiles = profiles || [];
+    }
+
   // Fetch transaction shares separately to avoid complex join issues
     const transactionIds = allTransactions.map((t) => t.id);
 
-    interface ShareWithProfile {
+  interface ShareWithProfile {
       id: string;
       transaction_id: string;
       shared_with_user_id: string;
-      share_type: string;
+      share_type: "equal" | "percentage" | "fixed_amount";
       share_value: number | null;
-      status: string;
+      status: "pending" | "accepted" | "declined";
       created_at: string;
       updated_at: string;
       profiles: {
@@ -435,6 +453,8 @@ export const fetchTransactionsWithShares = async (userId: string) => {
       // Combine shares with profile data
       sharesData = (shares || []).map((share) => ({
         ...share,
+        share_type: share.share_type as "equal" | "percentage" | "fixed_amount",
+        status: share.status as "pending" | "accepted" | "declined",
         profiles:
           profilesData.find((p) => p.id === share.shared_with_user_id) || {
             full_name: null,
@@ -448,11 +468,13 @@ export const fetchTransactionsWithShares = async (userId: string) => {
       );
     }
 
-    // Combine transactions with their shares
+    // Combine transactions with their shares and owner profile
     const transformedData = allTransactions.map((transaction) => {
       const transactionShares = sharesData.filter(
         (share) => share.transaction_id === transaction.id
       );
+      const ownerProfile =
+        ownerProfiles.find((p) => p.id === transaction.user_id) || null;
       console.log(
         `Transaction ${transaction.id} has ${transactionShares.length} shares:`,
         transactionShares
@@ -461,6 +483,7 @@ export const fetchTransactionsWithShares = async (userId: string) => {
       return {
         ...transaction,
         transaction_shares: transactionShares,
+        owner_profile: ownerProfile,
       };
     });
 
