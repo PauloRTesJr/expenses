@@ -88,6 +88,34 @@ describe("TransactionsService - Shared Income Installments", () => {
     expect(result).toBeDefined();
     expect(supabase.from).toHaveBeenCalled();
     expect(mockInsert).toHaveBeenCalled();
+
+    // Verify shares were created for the first and additional installments
+    expect(mockInsert.mock.calls[1][0]).toEqual([
+      {
+        transaction_id: "transaction-1",
+        shared_with_user_id: "user-1",
+        share_type: "equal",
+        share_value: undefined,
+        status: "accepted",
+      },
+    ]);
+
+    expect(mockInsert.mock.calls[3][0]).toEqual([
+      {
+        transaction_id: "inst-2",
+        shared_with_user_id: "user-1",
+        share_type: "equal",
+        share_value: undefined,
+        status: "accepted",
+      },
+      {
+        transaction_id: "inst-3",
+        shared_with_user_id: "user-1",
+        share_type: "equal",
+        share_value: undefined,
+        status: "accepted",
+      },
+    ]);
   });
 
   it("should handle single transactions correctly", async () => {
