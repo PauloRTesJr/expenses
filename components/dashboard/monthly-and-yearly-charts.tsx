@@ -14,7 +14,7 @@ import { Transaction } from "@/types/database";
 import { Calendar, TrendingUp, TrendingDown, DollarSign } from "lucide-react";
 import { useMemo } from "react";
 
-interface MonthlyAndYearlyChartsProps {
+export interface MonthlyAndYearlyChartsProps {
   transactions: Transaction[];
   currentMonth: Date;
 }

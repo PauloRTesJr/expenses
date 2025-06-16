@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useMemo } from "react";
 import { TransactionWithShares } from "@/types/shared-transactions";
+import { TransactionWithCategory } from "@/types/database";
 import {
   CreditCard,
   TrendingUp,
@@ -15,7 +16,7 @@ import {
 } from "lucide-react";
 
 interface TransactionHistoryProps {
-  transactions: TransactionWithShares[];
+  transactions: (TransactionWithCategory & Partial<TransactionWithShares>)[];
   isLoading: boolean;
 }
 
@@ -82,7 +83,9 @@ export function TransactionHistory({
   const getStatusLabel = (type: string) => {
     return type === "income" ? "Receita" : "Despesa";
   };
-  const formatSharedUsers = (transaction: TransactionWithShares) => {
+  const formatSharedUsers = (
+    transaction: Partial<TransactionWithShares>
+  ) => {
     // Debug: log transaction shares
     console.log("formatSharedUsers transaction:", transaction);
     console.log("formatSharedUsers shares:", transaction.transaction_shares);

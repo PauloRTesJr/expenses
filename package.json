@@ -45,6 +45,7 @@
     "react-number-format": "^5.4.4",
     "recharts": "^2.15.3",
     "tailwind-merge": "^2.3.0",
+    "@tanstack/react-query": "^5.80.7",
     "zod": "^3.22.4",
     "zustand": "^4.5.0"
   },
