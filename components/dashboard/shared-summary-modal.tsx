@@ -123,7 +123,8 @@ export function SharedSummaryModal({
               </p>
             </div>
           ))}
-        </div>{" "}        <div className="bg-[#1e1e1e] rounded-xl border border-gray-800 overflow-hidden">
+        </div>{" "}
+        <div className="bg-[#1e1e1e] rounded-xl border border-gray-800 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-[#2a2a2a]">
