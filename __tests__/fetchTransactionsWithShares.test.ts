@@ -76,11 +76,56 @@ function setupMocks() {
     .mockImplementationOnce(() => profilesChain);
 }
 
+function setupMocksNoOwn() {
+  const transactionsChain: any = {
+    select: jest.fn(() => transactionsChain),
+    eq: jest.fn(() => transactionsChain),
+    order: jest.fn(() => Promise.resolve({ data: [], error: null })),
+  };
+
+  const sharedIdsChain: any = {} as any;
+  sharedIdsChain.select = jest.fn(() => sharedIdsChain);
+  sharedIdsChain.eq = jest
+    .fn()
+    .mockReturnValueOnce(sharedIdsChain)
+    .mockResolvedValueOnce({ data: [{ transaction_id: "t2" }], error: null });
+
+  const sharedTransChain: any = {
+    select: jest.fn(() => sharedTransChain),
+    in: jest.fn(() => Promise.resolve({ data: [sharedTransaction], error: null })),
+  };
+
+  const sharesChain: any = {
+    select: jest.fn(() => sharesChain),
+    in: jest.fn(() => Promise.resolve({ data: shareRecords, error: null })),
+  };
+
+  const profilesChain: any = {
+    select: jest.fn(() => profilesChain),
+    in: jest.fn(() => Promise.resolve({ data: profileData, error: null })),
+  };
+
+  supabaseMock.from.mockReset();
+  supabaseMock.from
+    .mockImplementationOnce(() => transactionsChain)
+    .mockImplementationOnce(() => sharedIdsChain)
+    .mockImplementationOnce(() => sharedTransChain)
+    .mockImplementationOnce(() => sharesChain)
+    .mockImplementationOnce(() => profilesChain);
+}
+
 describe("fetchTransactionsWithShares", () => {
   it("returns owned and shared transactions", async () => {
     setupMocks();
     const data = await fetchTransactionsWithShares("u1");
     expect(data).toHaveLength(2);
+  });
+
+  it("returns shared transactions when user has none", async () => {
+    setupMocksNoOwn();
+    const data = await fetchTransactionsWithShares("u1");
+    expect(data).toHaveLength(1);
+    expect(data[0].id).toBe("t2");
   });
 
   it("throws on query error", async () => {
