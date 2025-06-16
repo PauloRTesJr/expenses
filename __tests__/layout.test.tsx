@@ -12,6 +12,8 @@ describe("RootLayout", () => {
     expect(result.type).toBe("html");
     expect(result.props.children.props.className).toContain("geist");
     expect(result.props.children.props.className).toContain("geist-mono");
-    expect(result.props.children.props.children.props.children).toBe("content");
+    expect(
+      result.props.children.props.children.props.children.props.children
+    ).toBe("content");
   });
 });
