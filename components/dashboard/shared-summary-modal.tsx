@@ -20,18 +20,28 @@ export function SharedSummaryModal({
   currentUserId,
   month,
 }: SharedSummaryModalProps) {
-  const summary = calculateMonthlySharedSummary(transactions, currentUserId, month);
-
+  const summary = calculateMonthlySharedSummary(
+    transactions,
+    currentUserId,
+    month
+  );
   const monthStart = new Date(month.getFullYear(), month.getMonth(), 1);
   const monthEnd = new Date(month.getFullYear(), month.getMonth() + 1, 0);
 
   const monthTransactions = transactions.filter((tx) => {
     const txDate = new Date(tx.date);
-    return txDate >= monthStart && txDate <= monthEnd &&
+    const isInDateRange = txDate >= monthStart && txDate <= monthEnd;
+    // Include transactions that are either:
+    // 1. Owned by current user and have shares, OR
+    // 2. Shared with current user (regardless of who owns them)
+    const isRelevantToUser =
+      (tx.user_id === currentUserId && tx.transaction_shares.length > 0) ||
       tx.transaction_shares.some(
-        (s) => s.status === "accepted" &&
-          (tx.user_id === currentUserId || s.shared_with_user_id === currentUserId),
+        (s) =>
+          s.status === "accepted" && s.shared_with_user_id === currentUserId
       );
+
+    return isInDateRange && isRelevantToUser;
   });
 
   return (
@@ -48,7 +58,9 @@ export function SharedSummaryModal({
               key={s.userId}
               className="p-4 rounded-lg bg-gray-800/50 border border-gray-700"
             >
-              <p className="text-sm font-medium text-white mb-2">{s.userName}</p>
+              <p className="text-sm font-medium text-white mb-2">
+                {s.userName}
+              </p>
               <p className="text-xs text-gray-400">
                 Total Receitas:{" "}
                 <span className="text-emerald-400 font-semibold">
@@ -88,35 +100,65 @@ export function SharedSummaryModal({
               </p>
             </div>
           ))}
-        </div>
+        </div>{" "}
         <div className="bg-[#1e1e1e] rounded-xl border border-gray-800 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-[#2a2a2a]">
                 <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Descrição</th>
-                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">Valor</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Compartilhado com</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Descrição
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Proprietário
+                  </th>
+                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Valor
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Compartilhado com
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-800">
                 {monthTransactions.map((tx) => {
-                  const participantNames = tx.user_id === currentUserId
-                    ? tx.transaction_shares
-                        .filter((s) => s.status === "accepted")
-                        .map((s) => s.profiles.full_name || s.profiles.email.split("@")[0] || "User")
-                    : [
-                        tx.owner_profile?.full_name ||
+                  // Format owner display
+                  const ownerDisplay =
+                    tx.user_id === currentUserId
+                      ? "Você"
+                      : tx.owner_profile?.full_name?.split(" ")[0] ||
                         tx.owner_profile?.email?.split("@")[0] ||
-                        "User",
-                      ];
+                        "Usuário"; // Format shared users display
+                  const participantNames = tx.transaction_shares
+                    .filter((s) => s.status === "accepted")
+                    .map((s) => {
+                      // If this share belongs to the current user, show "Você"
+                      if (s.shared_with_user_id === currentUserId) {
+                        return "Você";
+                      }
+
+                      // Otherwise, show the user's name
+                      return (
+                        s.profiles.full_name?.split(" ")[0] ||
+                        s.profiles.email.split("@")[0] ||
+                        "User"
+                      );
+                    });
+
                   return (
                     <tr key={tx.id} className="hover:bg-[#2a2a2a]">
-                      <td className="px-4 py-2 text-sm text-white">{tx.description}</td>
+                      <td className="px-4 py-2 text-sm text-white">
+                        {tx.description}
+                      </td>
+                      <td className="px-4 py-2 text-sm text-purple-400">
+                        {ownerDisplay}
+                      </td>
                       <td className="px-4 py-2 text-right">
                         <span
                           className={`text-sm font-medium ${
-                            tx.type === "income" ? "text-emerald-400" : "text-red-400"
+                            tx.type === "income"
+                              ? "text-emerald-400"
+                              : "text-red-400"
                           }`}
                         >
                           {tx.type === "income" ? "+" : "-"}

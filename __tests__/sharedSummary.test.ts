@@ -15,7 +15,9 @@ const createShare = (userId: string) => ({
 
 describe("calculateMonthlySharedSummary", () => {
   it("computes balances correctly", () => {
-    const transactions: (TransactionWithShares & { owner_profile?: { full_name?: string | null; email?: string | null } })[] = [
+    const transactions: (TransactionWithShares & {
+      owner_profile?: { full_name?: string | null; email?: string | null };
+    })[] = [
       {
         id: "t1",
         description: "A",
@@ -69,7 +71,11 @@ describe("calculateMonthlySharedSummary", () => {
       },
     ];
 
-    const res = calculateMonthlySharedSummary(transactions, "u1", new Date("2024-06-01"));
+    const res = calculateMonthlySharedSummary(
+      transactions,
+      "u1",
+      new Date(2024, 5, 1)
+    ); // June 1st, 2024
     expect(res).toHaveLength(1);
     const summary = res[0];
     expect(summary.userId).toBe("u2");

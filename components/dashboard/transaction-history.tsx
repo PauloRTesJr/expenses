@@ -2,8 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useMemo } from "react";
-import { TransactionWithShares } from "@/types/shared-transactions";
-import { TransactionWithCategory } from "@/types/database";
+import { TransactionWithCategoryAndShares } from "@/types/shared-transactions";
 import {
   CreditCard,
   TrendingUp,
@@ -16,17 +15,16 @@ import {
 } from "lucide-react";
 
 interface TransactionHistoryProps {
-  transactions: (TransactionWithCategory & Partial<TransactionWithShares>)[];
+  transactions: TransactionWithCategoryAndShares[];
   isLoading: boolean;
+  currentUserId: string;
 }
 
 export function TransactionHistory({
   transactions,
   isLoading,
+  currentUserId,
 }: TransactionHistoryProps) {
-  // Debug: log transactions to see if shares are included
-  console.log("TransactionHistory transactions:", transactions);
-
   const [showSharedOnly, setShowSharedOnly] = useState(false);
   const [sortBy, setSortBy] = useState<"date" | "sharedBy">("date");
 
@@ -39,9 +37,7 @@ export function TransactionHistory({
 
     const sorted = [...sharedFiltered].sort((a, b) => {
       if (sortBy === "date") {
-        return (
-          new Date(b.date).getTime() - new Date(a.date).getTime()
-        );
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
       }
 
       const aName =
@@ -83,39 +79,52 @@ export function TransactionHistory({
   const getStatusLabel = (type: string) => {
     return type === "income" ? "Receita" : "Despesa";
   };
-  const formatSharedUsers = (
-    transaction: Partial<TransactionWithShares>
-  ) => {
-    // Debug: log transaction shares
-    console.log("formatSharedUsers transaction:", transaction);
-    console.log("formatSharedUsers shares:", transaction.transaction_shares);
+  const formatOwner = (transaction: TransactionWithCategoryAndShares) => {
+    // Check if this transaction belongs to the current user
+    if (transaction.user_id === currentUserId) {
+      return "Você";
+    }
 
+    // If not the current user's transaction, show the owner's name from owner_profile
+    if (transaction.owner_profile) {
+      return (
+        transaction.owner_profile.full_name?.split(" ")[0] ||
+        transaction.owner_profile.email?.split("@")[0] ||
+        "Usuário"
+      );
+    }
+
+    // Fallback
+    return "Usuário";
+  };
+  const formatSharedUsers = (transaction: TransactionWithCategoryAndShares) => {
     if (
       !transaction.transaction_shares ||
       transaction.transaction_shares.length === 0
     ) {
-      console.log("No shares found for transaction:", transaction.id);
       return null;
     }
 
     // Show all shares (status is always accepted now)
     const allShares = transaction.transaction_shares;
 
-    console.log("All shares:", allShares);
-
     if (allShares.length === 0) {
-      console.log("No shares found");
       return null;
     }
 
-    const userNames = allShares.map(
-      (share) =>
+    const userNames = allShares.map((share) => {
+      // If this share belongs to the current user, show "Você"
+      if (share.shared_with_user_id === currentUserId) {
+        return "Você";
+      }
+
+      // Otherwise, show the user's name
+      return (
         share.profiles?.full_name?.split(" ")[0] ||
         share.profiles?.email?.split("@")[0] ||
         "Usuário"
-    );
-
-    console.log("User names:", userNames);
+      );
+    });
 
     if (userNames.length === 1) {
       return userNames[0];
@@ -195,9 +204,10 @@ export function TransactionHistory({
         </div>
       </div>{" "}
       {/* Table Header */}
-      <div className="hidden lg:grid lg:grid-cols-5 gap-4 text-sm font-medium text-gray-400 mb-4 px-4">
+      <div className="hidden lg:grid lg:grid-cols-6 gap-4 text-sm font-medium text-gray-400 mb-4 px-4">
         <div className="min-w-0">Nome</div>
         <div className="min-w-0">Data</div>
+        <div className="min-w-0">Proprietário</div>
         <div className="min-w-0">Compartilhamento</div>
         <div className="min-w-0 text-right">Valor</div>
         <div className="min-w-0 text-center">Status</div>
@@ -235,9 +245,14 @@ export function TransactionHistory({
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-white group-hover:text-blue-300 transition-colors truncate">
                         {transaction.description}
-                      </p>
+                      </p>{" "}
                       <div className="flex items-center space-x-2 text-xs text-gray-400">
                         <span>{formatDate(transaction.date)}</span>
+                        <span>•</span>
+                        <span className="text-purple-400 flex items-center">
+                          <CreditCard className="w-3 h-3 mr-1" />
+                          {formatOwner(transaction)}
+                        </span>
                         {formatSharedUsers(transaction) && (
                           <>
                             <span>•</span>
@@ -275,7 +290,7 @@ export function TransactionHistory({
                 </div>
               </div>{" "}
               {/* Desktop Layout */}
-              <div className="hidden lg:grid lg:grid-cols-5 gap-4 items-center">
+              <div className="hidden lg:grid lg:grid-cols-6 gap-4 items-center">
                 {/* Icon and Description */}
                 <div className="flex items-center space-x-3 min-w-0">
                   <div
@@ -304,6 +319,16 @@ export function TransactionHistory({
                   <span className="text-sm truncate">
                     {formatDate(transaction.date)}
                   </span>
+                </div>
+
+                {/* Proprietário */}
+                <div className="min-w-0">
+                  <div className="flex items-center text-purple-400">
+                    <CreditCard className="w-4 h-4 mr-2 flex-shrink-0" />
+                    <span className="text-sm truncate">
+                      {formatOwner(transaction)}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Compartilhamento */}

@@ -15,17 +15,17 @@ const MonthlyAndYearlyCharts = dynamic<MonthlyAndYearlyChartsProps>(
     ),
   { ssr: false }
 );
-import { useQuery, QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
+import {
+  useQuery,
+  QueryClient,
+  QueryClientProvider,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { UserAvatar } from "@/components/profile/user-avatar";
 import { useProfile } from "@/hooks/use-profile";
-import {
-  TransactionFormData,
-  TransactionShareInput,
-} from "@/types/database";
+import { TransactionFormData, TransactionShareInput } from "@/types/database";
 import { TransactionWithCategoryAndShares } from "@/types/shared-transactions";
-import {
-  createClientSupabase,
-} from "@/lib/supabase/client";
+import { createClientSupabase } from "@/lib/supabase/client";
 import { TransactionsService } from "@/lib/transactions/service";
 import { User } from "@supabase/supabase-js";
 import { Plus, Bell, Search, LogOut, Wallet, Users } from "lucide-react";
@@ -35,7 +35,6 @@ interface DashboardClientProps {
   user: User;
   categories: Array<{ id: string; name: string; type: "income" | "expense" }>;
 }
-
 
 interface FilterState {
   month: Date;
@@ -58,10 +57,9 @@ function DashboardInner({ user, categories }: DashboardClientProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSharedModalOpen, setIsSharedModalOpen] = useState(false);
   const queryClient = useQueryClient();
-  const {
-    data: transactions = [],
-    isLoading,
-  } = useQuery<TransactionWithCategoryAndShares[]>({
+  const { data: transactions = [], isLoading } = useQuery<
+    TransactionWithCategoryAndShares[]
+  >({
     queryKey: ["transactions", user.id],
     queryFn: () => TransactionsService.fetchTransactionsWithShares(user.id),
   });
@@ -79,39 +77,48 @@ function DashboardInner({ user, categories }: DashboardClientProps) {
 
   // Filtrar transações baseado nos filtros ativos
   const filteredTransactions = useMemo(() => {
-    return transactions.filter((transaction: TransactionWithCategoryAndShares) => {
-      const transactionDate = new Date(transaction.date);
-      const monthStart = startOfMonth(filters.month);
-      const monthEnd = endOfMonth(filters.month);
+    return transactions.filter(
+      (transaction: TransactionWithCategoryAndShares) => {
+        const transactionDate = new Date(transaction.date);
+        const monthStart = startOfMonth(filters.month);
+        const monthEnd = endOfMonth(filters.month);
 
-      const isInMonth =
-        transactionDate >= monthStart && transactionDate <= monthEnd;
+        const isInMonth =
+          transactionDate >= monthStart && transactionDate <= monthEnd;
 
-      const matchesSearch =
-        filters.search === "" ||
-        transaction.description
-          .toLowerCase()
-          .includes(filters.search.toLowerCase());
+        const matchesSearch =
+          filters.search === "" ||
+          transaction.description
+            .toLowerCase()
+            .includes(filters.search.toLowerCase());
 
-      const matchesCategory =
-        !filters.category_id || transaction.category_id === filters.category_id;
+        const matchesCategory =
+          !filters.category_id ||
+          transaction.category_id === filters.category_id;
 
-      const matchesType =
-        filters.type === "all" || transaction.type === filters.type;
+        const matchesType =
+          filters.type === "all" || transaction.type === filters.type;
 
-      return isInMonth && matchesSearch && matchesCategory && matchesType;
-    });
+        return isInMonth && matchesSearch && matchesCategory && matchesType;
+      }
+    );
   }, [transactions, filters]);
 
   // Calcular totais
   const totals = useMemo(() => {
     const income = filteredTransactions
       .filter((t: TransactionWithCategoryAndShares) => t.type === "income")
-      .reduce((sum: number, t: TransactionWithCategoryAndShares) => sum + t.amount, 0);
+      .reduce(
+        (sum: number, t: TransactionWithCategoryAndShares) => sum + t.amount,
+        0
+      );
 
     const expense = filteredTransactions
       .filter((t: TransactionWithCategoryAndShares) => t.type === "expense")
-      .reduce((sum: number, t: TransactionWithCategoryAndShares) => sum + t.amount, 0);
+      .reduce(
+        (sum: number, t: TransactionWithCategoryAndShares) => sum + t.amount,
+        0
+      );
 
     // Calcular crescimento mensal (mock data por enquanto)
     const monthlyGrowth = 15.2;
@@ -178,7 +185,9 @@ function DashboardInner({ user, categories }: DashboardClientProps) {
         if (error) throw error;
       }
 
-      await queryClient.invalidateQueries({ queryKey: ["transactions", user.id] });
+      await queryClient.invalidateQueries({
+        queryKey: ["transactions", user.id],
+      });
       setIsModalOpen(false);
     } catch (error) {
       console.error("Erro ao salvar transação:", error);
@@ -307,14 +316,13 @@ function DashboardInner({ user, categories }: DashboardClientProps) {
           onMonthChange={(newMonth) =>
             setFilters((prev) => ({ ...prev, month: newMonth }))
           }
-        />
-
+        />{" "}
         {/* Transaction History */}
         <TransactionHistory
           transactions={filteredTransactions}
           isLoading={isLoading}
+          currentUserId={user.id}
         />
-
         {/* Monthly and Yearly Charts - Side by Side */}
         <MonthlyAndYearlyCharts
           transactions={transactions}

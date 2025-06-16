@@ -11,7 +11,7 @@ import {
 
 describe("Additional utils", () => {
   it("formats date and time correctly", () => {
-    const date = new Date("2024-05-15T10:30:00Z");
+    const date = new Date(2024, 4, 15, 10, 30); // May 15th, 2024, 10:30 AM local time
     expect(formatDateTime(date)).toMatch(/15\/05\/2024.*10:30/);
   });
 
@@ -19,9 +19,8 @@ describe("Additional utils", () => {
     const date = new Date();
     expect(formatRelativeDate(date)).toContain("há");
   });
-
   it("formats month and year", () => {
-    const date = new Date("2023-02-01T00:00:00Z");
+    const date = new Date(2023, 1, 1); // February 1st, 2023 (month index 1 = February)
     expect(formatMonthYear(date)).toMatch(/fevereiro 2023/i);
   });
 

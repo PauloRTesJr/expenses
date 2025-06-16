@@ -54,14 +54,13 @@ describe("SharedSummaryModal", () => {
         transaction_shares: [createShare("u1")],
       },
     ];
-
     render(
       <SharedSummaryModal
         isOpen={true}
         onClose={() => {}}
         transactions={transactions}
         currentUserId="u1"
-        month={new Date("2024-06-01")}
+        month={new Date(2024, 5, 1)} // June 1st, 2024 (month index 5 = June)
       />
     );
 
