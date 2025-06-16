@@ -45,9 +45,9 @@ export function TransactionHistory({
       }
 
       const aName =
-        a.transaction_shares[0]?.profiles?.full_name?.toLowerCase() || "";
+        a.transaction_shares?.[0]?.profiles?.full_name?.toLowerCase() || "";
       const bName =
-        b.transaction_shares[0]?.profiles?.full_name?.toLowerCase() || "";
+        b.transaction_shares?.[0]?.profiles?.full_name?.toLowerCase() || "";
       return aName.localeCompare(bName);
     });
 

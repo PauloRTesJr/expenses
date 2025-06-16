@@ -71,4 +71,16 @@ describe('TransactionHistory filters and sorting', () => {
       expect(sorted[0].textContent).toContain('Second');
     });
   });
+
+  it('handles sorting when shares are missing', async () => {
+    const data = [tx('1', 'NoShare1', '2024-06-10'), tx('2', 'NoShare2', '2024-06-09')];
+    const user = userEvent.setup();
+    const { container } = render(
+      <TransactionHistory transactions={data} isLoading={false} />
+    );
+    await user.click(screen.getByLabelText('Toggle sort mode'));
+    await waitFor(() => {
+      expect(container.querySelectorAll('.group')).toHaveLength(2);
+    });
+  });
 });
