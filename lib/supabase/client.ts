@@ -1,5 +1,6 @@
 import { createBrowserClient } from "@supabase/ssr";
 import { useState, useEffect } from "react";
+import { env } from "@/config";
 import { User } from "@supabase/supabase-js";
 import {
   Database,
@@ -10,10 +11,7 @@ import {
 } from "@/types/database";
 
 export const createClientSupabase = () => {
-  return createBrowserClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  return createBrowserClient<Database>(env.supabaseUrl, env.supabaseAnonKey);
 };
 
 export const supabase = createClientSupabase();

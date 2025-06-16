@@ -1,25 +1,32 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { startOfMonth, endOfMonth } from "date-fns";
 import { motion } from "framer-motion";
 import { TransactionForm } from "@/components/forms/transaction-form";
 import { MetricsCards } from "@/components/dashboard/metrics-cards";
 import { TransactionHistory } from "@/components/dashboard/transaction-history";
-import { MonthlyAndYearlyCharts } from "@/components/dashboard/monthly-and-yearly-charts";
+import dynamic from "next/dynamic";
+import type { MonthlyAndYearlyChartsProps } from "@/components/dashboard/monthly-and-yearly-charts";
+const MonthlyAndYearlyCharts = dynamic<MonthlyAndYearlyChartsProps>(
+  () =>
+    import("@/components/dashboard/monthly-and-yearly-charts").then(
+      (mod) => mod.MonthlyAndYearlyCharts
+    ),
+  { ssr: false }
+);
+import { useQuery, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { UserAvatar } from "@/components/profile/user-avatar";
 import { useProfile } from "@/hooks/use-profile";
 import {
   TransactionFormData,
-  Category,
   TransactionShareInput,
+  TransactionWithCategory,
 } from "@/types/database";
-import { TransactionWithShares } from "@/types/shared-transactions";
 import {
   createClientSupabase,
-  createSharedTransaction,
-  fetchTransactionsWithShares,
 } from "@/lib/supabase/client";
+import { TransactionsService } from "@/lib/transactions/service";
 import { User } from "@supabase/supabase-js";
 import { Plus, Bell, Search, LogOut, Wallet } from "lucide-react";
 
@@ -28,9 +35,6 @@ interface DashboardClientProps {
   categories: Array<{ id: string; name: string; type: "income" | "expense" }>;
 }
 
-interface TransactionWithCategory extends TransactionWithShares {
-  category?: Category;
-}
 
 interface FilterState {
   month: Date;
@@ -41,10 +45,14 @@ interface FilterState {
 
 export function DashboardClient({ user, categories }: DashboardClientProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [transactions, setTransactions] = useState<TransactionWithCategory[]>(
-    []
-  );
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = new QueryClient();
+  const {
+    data: transactions = [],
+    isLoading,
+  } = useQuery<TransactionWithCategory[]>({
+    queryKey: ["transactions", user.id],
+    queryFn: () => TransactionsService.fetchTransactionsWithShares(user.id),
+  });
   const [filters, setFilters] = useState<FilterState>({
     month: new Date(),
     search: "",
@@ -55,34 +63,11 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
   // Profile hook for avatar and fullname
   const { profile, loading: profileLoading } = useProfile();
 
-  const supabase = createClientSupabase(); // Buscar transações do banco de dados
-  const fetchTransactions = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const data = await fetchTransactionsWithShares(user.id);
-
-      // Use type assertion to handle the type mismatch temporarily
-      const transformedData = data.map((item) => ({
-        ...item,
-        category: item.category || undefined,
-        transaction_shares: item.transaction_shares || [],
-      })) as TransactionWithCategory[];
-
-      setTransactions(transformedData);
-    } catch (error) {
-      console.error("Erro ao buscar transações:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user.id]);
-
-  useEffect(() => {
-    fetchTransactions();
-  }, [fetchTransactions]);
+  const supabase = createClientSupabase();
 
   // Filtrar transações baseado nos filtros ativos
   const filteredTransactions = useMemo(() => {
-    return transactions.filter((transaction) => {
+    return transactions.filter((transaction: TransactionWithCategory) => {
       const transactionDate = new Date(transaction.date);
       const monthStart = startOfMonth(filters.month);
       const monthEnd = endOfMonth(filters.month);
@@ -109,12 +94,12 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
   // Calcular totais
   const totals = useMemo(() => {
     const income = filteredTransactions
-      .filter((t) => t.type === "income")
-      .reduce((sum, t) => sum + t.amount, 0);
+      .filter((t: TransactionWithCategory) => t.type === "income")
+      .reduce((sum: number, t: TransactionWithCategory) => sum + t.amount, 0);
 
     const expense = filteredTransactions
-      .filter((t) => t.type === "expense")
-      .reduce((sum, t) => sum + t.amount, 0);
+      .filter((t: TransactionWithCategory) => t.type === "expense")
+      .reduce((sum: number, t: TransactionWithCategory) => sum + t.amount, 0);
 
     // Calcular crescimento mensal (mock data por enquanto)
     const monthlyGrowth = 15.2;
@@ -132,7 +117,11 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
     try {
       if (data.shares && data.shares.length > 0) {
         // Usar a nova função para transações compartilhadas
-        await createSharedTransaction(data, data.shares);
+        await TransactionsService.createSharedTransaction(
+          data,
+          data.shares,
+          user.id
+        );
       } else if (data.is_installment && data.installment_count) {
         // Lógica existente para parcelas sem compartilhamento
         const installmentGroupId = crypto.randomUUID();
@@ -177,7 +166,7 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
         if (error) throw error;
       }
 
-      await fetchTransactions();
+      await queryClient.invalidateQueries({ queryKey: ["transactions", user.id] });
       setIsModalOpen(false);
     } catch (error) {
       console.error("Erro ao salvar transação:", error);
@@ -186,7 +175,8 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <QueryClientProvider client={queryClient}>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       {/* Header moderno */}
       <motion.header
         initial={{ opacity: 0, y: -20 }}
@@ -326,5 +316,6 @@ export function DashboardClient({ user, categories }: DashboardClientProps) {
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl"></div>
       </div>
     </div>
+    </QueryClientProvider>
   );
 }
