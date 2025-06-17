@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, type ComponentType } from "react";
+import { useState, useEffect, type ComponentType } from "react";
 import { Button } from "@/components/ui/button";
 import { Input, type InputProps } from "@/components/ui/input";
 import { NumericFormat } from "react-number-format";
 import { Modal } from "@/components/ui/modal";
 import { UserSelector } from "@/components/forms/user-selector";
-import { ShareConfig } from "@/components/forms/share-config";
+
 import { TransactionFormData, TransactionShareInput } from "@/types/database";
 
 interface Category {
@@ -41,6 +41,20 @@ export function TransactionForm({
   });
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [shareConfig, setShareConfig] = useState<TransactionShareInput[]>([]);
+
+  // Always set equal shares when selectedUsers or amount changes
+  useEffect(() => {
+    if (selectedUsers.length === 0) {
+      setShareConfig([]);
+      return;
+    }
+    const equalValue = Number((formData.amount / selectedUsers.length).toFixed(2));
+    setShareConfig(selectedUsers.map((userId) => ({
+      userId,
+      shareType: 'equal',
+      shareValue: null,
+    })));
+  }, [selectedUsers, formData.amount]);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -48,6 +62,7 @@ export function TransactionForm({
     setIsLoading(true);
 
     try {
+      console.log('[DEBUG] TransactionForm handleSubmit', { formData, selectedUsers, shareConfig });
       await onSubmit({
         ...formData,
         shares: selectedUsers.length > 0 ? shareConfig : undefined,
@@ -337,12 +352,7 @@ export function TransactionForm({
             onUsersChange={setSelectedUsers}
           />
 
-          {/* Share Configuration */}
-          <ShareConfig
-            selectedUsers={selectedUsers}
-            totalAmount={formData.amount}
-            onShareConfigChange={setShareConfig}
-          />
+
 
           {/* Installment */}
           <div>

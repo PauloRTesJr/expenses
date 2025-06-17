@@ -133,6 +133,7 @@ function DashboardInner({ user, categories }: DashboardClientProps) {
   const handleTransactionSubmit = async (
     data: TransactionFormData & { shares?: TransactionShareInput[] }
   ) => {
+    console.log('[DEBUG] handleTransactionSubmit called with:', data);
     try {
       if (data.shares && data.shares.length > 0) {
         // Usar a nova função para transações compartilhadas

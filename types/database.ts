@@ -447,7 +447,7 @@ export type BudgetFormData = {
 export type TransactionShareInput = {
   userId: string;
   shareType: "equal" | "percentage" | "fixed_amount";
-  shareValue?: number;
+  shareValue?: number | null;
 };
 
 // Tipos para liquidação de contas

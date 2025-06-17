@@ -22,7 +22,7 @@ export interface TransactionWithShares extends Transaction {
 export interface TransactionShareInput {
   userId: string;
   shareType: "equal" | "percentage" | "fixed_amount";
-  shareValue?: number;
+  shareValue?: number | null;
 }
 
 export interface Settlement {
