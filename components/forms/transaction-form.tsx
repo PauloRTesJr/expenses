@@ -48,12 +48,13 @@ export function TransactionForm({
       setShareConfig([]);
       return;
     }
-    const equalValue = Number((formData.amount / selectedUsers.length).toFixed(2));
-    setShareConfig(selectedUsers.map((userId) => ({
-      userId,
-      shareType: 'equal',
-      shareValue: null,
-    })));
+    setShareConfig(
+      selectedUsers.map((userId) => ({
+        userId,
+        shareType: "equal",
+        shareValue: null,
+      }))
+    );
   }, [selectedUsers, formData.amount]);
   const [isLoading, setIsLoading] = useState(false);
 
