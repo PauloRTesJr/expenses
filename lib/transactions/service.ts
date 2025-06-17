@@ -21,9 +21,8 @@ export class TransactionsService {
   ) {
     try {
       // Criar a transação principal
-      const installmentGroupId = transactionData.is_installment
-        ? crypto.randomUUID()
-        : null;
+      const installmentGroupId =
+        transactionData.is_installment ? crypto.randomUUID() : null;
       const firstInstallmentDescription =
         transactionData.is_installment && transactionData.installment_count
           ? `${transactionData.description} (1/${transactionData.installment_count})`
@@ -73,7 +72,6 @@ export class TransactionsService {
         transactionData.installment_count > 1
       ) {
         const installments = [];
-        const installmentGroupId = transaction.installment_group_id;
 
         for (let i = 2; i <= transactionData.installment_count; i++) {
           const installmentDate = new Date(transactionData.date);

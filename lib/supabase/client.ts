@@ -97,6 +97,9 @@ export const createSharedTransaction = async (
     }
 
     // Criar a transação principal
+    const installmentGroupId =
+      transactionData.is_installment ? crypto.randomUUID() : null;
+
     const { data: transaction, error: transactionError } = await supabase
       .from("transactions")
       .insert({
@@ -109,9 +112,7 @@ export const createSharedTransaction = async (
         is_installment: transactionData.is_installment,
         installment_count: transactionData.installment_count,
         installment_current: transactionData.is_installment ? 1 : null,
-        installment_group_id: transactionData.is_installment
-          ? crypto.randomUUID()
-          : null,
+        installment_group_id: installmentGroupId,
       })
       .select()
       .single();
@@ -148,7 +149,6 @@ export const createSharedTransaction = async (
       transactionData.installment_count > 1
     ) {
       const installments = [];
-      const installmentGroupId = transaction.installment_group_id;
 
       for (let i = 2; i <= transactionData.installment_count; i++) {
         const installmentDate = new Date(transactionData.date);
