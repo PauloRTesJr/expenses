@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { DashboardClient } from "../app/dashboard/dashboard-client";
+import { LocaleProvider } from "../components/providers/locale-provider";
 
 jest.mock("../components/forms/transaction-form", () => ({
   TransactionForm: () => <div data-testid="transaction-form" />,
@@ -38,7 +39,11 @@ jest.mock("../lib/supabase/client", () => ({
 
 describe("DashboardClient", () => {
   it("renders wrapped with QueryClientProvider", async () => {
-    render(<DashboardClient user={{ id: "1" } as any} categories={[]} />);
+    render(
+      <LocaleProvider>
+        <DashboardClient user={{ id: "1" } as any} categories={[]} />
+      </LocaleProvider>
+    );
     expect(await screen.findByTestId("metrics-cards")).toBeInTheDocument();
   });
 });

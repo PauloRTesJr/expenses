@@ -23,12 +23,14 @@ import {
 } from "@tanstack/react-query";
 import { UserAvatar } from "@/components/profile/user-avatar";
 import { useProfile } from "@/hooks/use-profile";
+import { useLocale } from "@/components/providers/locale-provider";
 import { TransactionFormData, TransactionShareInput } from "@/types/database";
 import { TransactionWithCategoryAndShares } from "@/types/shared-transactions";
 import { createClientSupabase } from "@/lib/supabase/client";
 import { TransactionsService } from "@/lib/transactions/service";
 import { User } from "@supabase/supabase-js";
 import { Plus, Bell, Search, LogOut, Wallet, Users } from "lucide-react";
+import { LocaleSwitcher } from "@/components/ui/locale-switcher";
 import { SharedSummaryModal } from "@/components/dashboard/shared-summary-modal";
 
 interface DashboardClientProps {
@@ -57,6 +59,7 @@ function DashboardInner({ user, categories }: DashboardClientProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSharedModalOpen, setIsSharedModalOpen] = useState(false);
   const queryClient = useQueryClient();
+  const { t } = useLocale();
   const { data: transactions = [], isLoading } = useQuery<
     TransactionWithCategoryAndShares[]
   >({
@@ -208,6 +211,7 @@ function DashboardInner({ user, categories }: DashboardClientProps) {
           <div className="flex justify-between items-center h-16">
             {/* Logo e título */}
             <div className="flex items-center space-x-4">
+              <LocaleSwitcher />
               <motion.div
                 whileHover={{ scale: 1.05, rotate: 5 }}
                 className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg"
@@ -216,9 +220,9 @@ function DashboardInner({ user, categories }: DashboardClientProps) {
               </motion.div>
               <div>
                 <h1 className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                  Expense
+                  {t("dashboard.title")}
                 </h1>
-                <p className="text-xs text-gray-400">Financial Dashboard</p>
+                <p className="text-xs text-gray-400">{t("dashboard.subtitle")}</p>
               </div>
             </div>
             {/* Search bar */}
@@ -227,7 +231,7 @@ function DashboardInner({ user, categories }: DashboardClientProps) {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <input
                   type="text"
-                  placeholder="Buscar transações..."
+                  placeholder={t("dashboard.searchPlaceholder")}
                   className="w-full bg-gray-800/50 border border-gray-600/50 rounded-xl pl-10 pr-4 py-2 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
                 />
               </div>
@@ -241,7 +245,7 @@ function DashboardInner({ user, categories }: DashboardClientProps) {
                 className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-3 py-2 rounded-xl text-sm font-medium shadow-lg transition-all duration-200 flex items-center space-x-2"
               >
                 <Plus className="w-4 h-4" />
-                <span>Nova Transação</span>
+                <span>{t("dashboard.newTransaction")}</span>
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -250,7 +254,7 @@ function DashboardInner({ user, categories }: DashboardClientProps) {
                 className="bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 text-white px-3 py-2 rounded-xl text-sm font-medium shadow-lg transition-all duration-200 flex items-center space-x-2"
               >
                 <Users className="w-4 h-4" />
-                <span>Calcular Receitas/Despesas Divididas</span>
+                <span>{t("dashboard.calculateShared")}</span>
               </motion.button>
 
               <div className="flex items-center space-x-2">
@@ -272,7 +276,7 @@ function DashboardInner({ user, categories }: DashboardClientProps) {
                         <p className="text-sm font-medium text-white">
                           {profile?.full_name ||
                             user.email?.split("@")[0] ||
-                            "Usuário"}
+                            t("dashboard.userFallback")}
                         </p>
                         <p className="text-xs text-gray-400">{user.email}</p>
                       </>
@@ -283,7 +287,7 @@ function DashboardInner({ user, categories }: DashboardClientProps) {
                   ) : (
                     <UserAvatar
                       src={profile?.avatar_url}
-                      alt={profile?.full_name || "Avatar do usuário"}
+                      alt={profile?.full_name || t("dashboard.userAvatarAlt")}
                       size="md"
                       fallbackText={profile?.full_name || user.email}
                       className="border-2 border-gray-600 hover:border-gray-500 transition-colors cursor-pointer"
