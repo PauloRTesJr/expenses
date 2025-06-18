@@ -41,10 +41,9 @@ export function MonthlyAndYearlyCharts({
     return new Intl.NumberFormat(locale, {
       style: "currency",
       currency: "BRL",
+      minimumFractionDigits: 0,
       maximumFractionDigits: 1,
-    })
-      .format(value * 1000)
-      .replace(/\,00$/, "");
+    }).format(value * 1000);
   };
 
   const formatCurrencyFull = (amount: number) => {
