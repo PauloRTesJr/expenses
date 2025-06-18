@@ -30,14 +30,10 @@ function InnerLayout({ children, locale }: { children: React.ReactNode; locale: 
   );
 }
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <LocaleProvider>
-      <InnerLayout>{children}</InnerLayout>
+      <InnerLayout locale="en">{children}</InnerLayout>
     </LocaleProvider>
   );
 }
