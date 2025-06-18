@@ -8,11 +8,13 @@ import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { LoginSchema, type LoginFormData } from "@/lib/validations";
 import { Button, Input } from "@/components/ui";
+import { useLocale } from "@/components/providers/locale-provider";
 
 export const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useLocale();
 
   const {
     register,
@@ -37,11 +39,11 @@ export const LoginForm = () => {
         
         // Map Supabase specific errors
         if (authError.message.includes("Invalid login credentials")) {
-          setError("Incorrect email or password");
+          setError(t("login.incorrectCredentials"));
         } else if (authError.message.includes("Email not confirmed")) {
-          setError("Please confirm your email before logging in");
+          setError(t("login.confirmEmail"));
         } else {
-          setError("Login error. Please try again.");
+          setError(t("login.loginError"));
         }
         return;
       }
@@ -54,7 +56,7 @@ export const LoginForm = () => {
       }
     } catch (error) {
       console.log("login catch", error);
-      setError("Internal error. Please try again later.");
+      setError(t("login.internalError"));
     } finally {
       setIsLoading(false);
     }
@@ -72,7 +74,7 @@ export const LoginForm = () => {
       {/* Email Field */}
       <div className="space-y-2">
         <label htmlFor="email" className="block text-sm font-medium text-white">
-          Email
+          {t("login.email")}
         </label>
         <Input
           id="email"
@@ -99,7 +101,7 @@ export const LoginForm = () => {
       {/* Password Field */}
       <div className="space-y-2">
         <label htmlFor="password" className="block text-sm font-medium text-white">
-          Password
+          {t("login.password")}
         </label>
         <div className="relative">
           <Input
@@ -121,7 +123,7 @@ export const LoginForm = () => {
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-[#1DB954]"
-            aria-label={showPassword ? "Hide password" : "Show password"}
+            aria-label={showPassword ? t("login.hidePassword") : t("login.showPassword")}
             disabled={isLoading}
           >
             {showPassword ? (
@@ -144,7 +146,7 @@ export const LoginForm = () => {
           href="/forgot-password"
           className="text-sm text-[#1DB954] hover:text-[#1ed760] transition-colors"
         >
-          Forgot your password?
+          {t("login.forgotPassword")}
         </a>
       </div>
 
@@ -158,10 +160,10 @@ export const LoginForm = () => {
         {isLoading ? (
           <div className="flex items-center justify-center">
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            Signing in...
+            {t("login.signingIn")}
           </div>
         ) : (
-          "Sign In"
+          t("login.signIn")
         )}
       </Button>
 
@@ -171,7 +173,7 @@ export const LoginForm = () => {
           <div className="w-full border-t border-gray-700" />
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-[#1e1e1e] text-gray-400">or</span>
+          <span className="px-2 bg-[#1e1e1e] text-gray-400">{t("login.or")}</span>
         </div>
       </div>
 
@@ -200,7 +202,7 @@ export const LoginForm = () => {
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
             />
           </svg>
-          Continuar com Google
+          {t("login.continueWithGoogle")}
         </button>
       </div>
     </form>

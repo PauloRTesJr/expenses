@@ -1,12 +1,9 @@
-import { Metadata } from "next";
+"use client";
 import { LoginForm } from "@/components/forms/login-form";
-
-export const metadata: Metadata = {
-  title: "Login - Expenses",
-  description: "Faça login na sua conta do Expenses",
-};
+import { useLocale } from "@/components/providers/locale-provider";
 
 export default function LoginPage() {
+  const { t } = useLocale();
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-[#232949] via-[#764ba2] to-[#0f1419]">
       <div className="max-w-md w-full">
@@ -28,10 +25,10 @@ export default function LoginPage() {
             </svg>
           </div>
           <h1 className="text-4xl font-bold text-white mb-3">
-            Welcome back
+            {t("login.welcome")}
           </h1>
           <p className="text-gray-300 text-lg">
-            Sign in to your account to continue managing your finances
+            {t("login.subtitle")}
           </p>
         </div>
 
@@ -43,12 +40,12 @@ export default function LoginPage() {
         {/* Footer */}
         <div className="text-center mt-8">
           <p className="text-gray-300">
-            Don&apos;t have an account?{' '}
+            {t("login.dontHaveAccount")} {" "}
             <a
               href="/register"
               className="text-[#8b5cf6] hover:text-[#764ba2] font-medium transition-colors"
             >
-              Create account
+              {t("login.createAccount")}
             </a>
           </p>
         </div>
