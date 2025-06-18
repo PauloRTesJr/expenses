@@ -22,5 +22,16 @@
   "dashboard.calculateShared": "Calcular Receitas/Despesas Divididas",
   "dashboard.searchPlaceholder": "Buscar transações...",
   "dashboard.userFallback": "Usuário",
-  "dashboard.userAvatarAlt": "Avatar do usuário"
+  "dashboard.userAvatarAlt": "Avatar do usuário",
+  "sharedModal.title": "Despesas/Receitas Divididas",
+  "sharedModal.totalIncome": "Total Receitas",
+  "sharedModal.totalExpense": "Total Despesas",
+  "sharedModal.receiveFrom": "Receber de",
+  "sharedModal.payTo": "Pagar para",
+  "sharedModal.description": "Descrição",
+  "sharedModal.owner": "Proprietário",
+  "sharedModal.installments": "Parcelas",
+  "sharedModal.amount": "Valor",
+  "sharedModal.sharedWith": "Compartilhado com",
+  "common.you": "Você"
 }

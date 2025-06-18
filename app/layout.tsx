@@ -37,7 +37,7 @@ export default function RootLayout({
 }>) {
   return (
     <LocaleProvider>
-      <InnerLayout>{children}</InnerLayout>
+      <InnerLayout locale="pt-BR">{children}</InnerLayout>
     </LocaleProvider>
   );
 }

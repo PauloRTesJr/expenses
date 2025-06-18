@@ -22,5 +22,16 @@
   "dashboard.calculateShared": "Calculate Shared Income/Expenses",
   "dashboard.searchPlaceholder": "Search transactions...",
   "dashboard.userFallback": "User",
-  "dashboard.userAvatarAlt": "User avatar"
+  "dashboard.userAvatarAlt": "User avatar",
+  "sharedModal.title": "Shared Expenses/Income",
+  "sharedModal.totalIncome": "Total Income",
+  "sharedModal.totalExpense": "Total Expenses",
+  "sharedModal.receiveFrom": "Receive from",
+  "sharedModal.payTo": "Pay to",
+  "sharedModal.description": "Description",
+  "sharedModal.owner": "Owner",
+  "sharedModal.installments": "Installments",
+  "sharedModal.amount": "Amount",
+  "sharedModal.sharedWith": "Shared with",
+  "common.you": "You"
 }

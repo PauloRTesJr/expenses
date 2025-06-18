@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { SharedSummaryModal } from "../components/dashboard/shared-summary-modal";
 import { TransactionWithCategoryAndShares } from "../types/shared-transactions";
+import { LocaleProvider } from "../components/providers/locale-provider";
 
 const createShare = (userId: string) => ({
   id: "s" + userId,
@@ -55,13 +56,15 @@ describe("SharedSummaryModal", () => {
       },
     ];
     render(
-      <SharedSummaryModal
-        isOpen={true}
-        onClose={() => {}}
-        transactions={transactions}
-        currentUserId="u1"
-        month={new Date(2024, 5, 1)} // June 1st, 2024 (month index 5 = June)
-      />
+      <LocaleProvider>
+        <SharedSummaryModal
+          isOpen={true}
+          onClose={() => {}}
+          transactions={transactions}
+          currentUserId="u1"
+          month={new Date(2024, 5, 1)} // June 1st, 2024 (month index 5 = June)
+        />
+      </LocaleProvider>
     );
 
     expect(screen.getByText("User2")).toBeInTheDocument();
