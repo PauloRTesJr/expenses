@@ -9,8 +9,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { useLocale } from "@/components/providers/locale-provider";
 
 interface MetricsCardsProps {
   totalIncome: number;
@@ -29,8 +28,9 @@ export function MetricsCards({
   currentMonth,
   onMonthChange,
 }: MetricsCardsProps) {
+  const { locale, t } = useLocale();
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("pt-BR", {
+    return new Intl.NumberFormat(locale, {
       style: "currency",
       currency: "BRL",
     }).format(amount);
@@ -67,8 +67,11 @@ export function MetricsCards({
 
   const cards = [
     {
-      title: "Período Selecionado",
-      value: format(currentMonth, "MMMM yyyy", { locale: ptBR }),
+      title: t("metrics.selectedPeriod"),
+      value: currentMonth.toLocaleDateString(locale, {
+        month: "long",
+        year: "numeric",
+      }),
       isMonthSelector: true,
       icon: Calendar,
       color: "text-blue-400",
@@ -76,7 +79,7 @@ export function MetricsCards({
       borderColor: "border-blue-400/20",
     },
     {
-      title: "Total de Receitas",
+      title: t("metrics.totalIncome"),
       value: formatCurrency(totalIncome),
       percentage: "+12.5%",
       icon: TrendingUp,
@@ -86,7 +89,7 @@ export function MetricsCards({
       trend: "up",
     },
     {
-      title: "Total de Despesas",
+      title: t("metrics.totalExpenses"),
       value: formatCurrency(totalExpenses),
       percentage: "-4.2%",
       icon: TrendingDown,
@@ -96,7 +99,7 @@ export function MetricsCards({
       trend: "down",
     },
     {
-      title: "Lucro Total",
+      title: t("metrics.totalProfit"),
       value: formatCurrency(balance),
       percentage: formatPercentage(monthlyGrowth),
       icon: DollarSign,

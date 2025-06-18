@@ -13,6 +13,7 @@ import {
 import { Transaction } from "@/types/database";
 import { Calendar, TrendingUp, TrendingDown, DollarSign } from "lucide-react";
 import { useMemo } from "react";
+import { useLocale } from "@/components/providers/locale-provider";
 
 export interface MonthlyAndYearlyChartsProps {
   transactions: Transaction[];
@@ -35,12 +36,19 @@ export function MonthlyAndYearlyCharts({
   transactions,
   currentMonth,
 }: MonthlyAndYearlyChartsProps) {
+  const { locale, t } = useLocale();
   const formatCurrency = (value: number) => {
-    return `R$ ${value.toFixed(1)}K`;
+    return new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency: "BRL",
+      maximumFractionDigits: 1,
+    })
+      .format(value * 1000)
+      .replace(/\,00$/, "");
   };
 
   const formatCurrencyFull = (amount: number) => {
-    return new Intl.NumberFormat("pt-BR", {
+    return new Intl.NumberFormat(locale, {
       style: "currency",
       currency: "BRL",
       minimumFractionDigits: 0,
@@ -147,20 +155,20 @@ export function MonthlyAndYearlyCharts({
         <div className="flex items-center justify-between mb-6">
           <div>
             <h3 className="text-xl font-bold text-white mb-1">
-              Resultados Mensais
+              {t("charts.monthlyResultsTitle")}
             </h3>
             <p className="text-sm text-gray-400">
-              Evolução dos últimos 12 meses
+              {t("charts.monthlyResultsSubtitle")}
             </p>
           </div>
           <div className="flex items-center space-x-4 text-sm">
             <div className="flex items-center">
               <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-              <span className="text-gray-400">Receitas</span>
+              <span className="text-gray-400">{t("charts.income")}</span>
             </div>
             <div className="flex items-center">
               <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-              <span className="text-gray-400">Despesas</span>
+              <span className="text-gray-400">{t("charts.expense")}</span>
             </div>
           </div>
         </div>
@@ -226,15 +234,17 @@ export function MonthlyAndYearlyCharts({
             </div>
             <div>
               <h3 className="text-xl font-bold text-white">
-                Resultados Anuais
+                {t("charts.annualResultsTitle")}
               </h3>
               <p className="text-sm text-gray-400">
-                Resumo do ano {currentMonth.getFullYear()}
+                {t("charts.annualSummary")} {currentMonth.getFullYear()}
               </p>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-xs text-gray-400">Meses considerados</p>
+            <p className="text-xs text-gray-400">
+              {t("charts.monthsConsidered")}
+            </p>
             <p className="text-sm font-medium text-white">
               {annualTotals.monthsElapsed} de 12
             </p>
@@ -255,14 +265,14 @@ export function MonthlyAndYearlyCharts({
                 <TrendingUp className="w-5 h-5 text-green-400" />
               </div>
               <div className="text-right">
-                <p className="text-xs text-gray-400">Média mensal</p>
+                <p className="text-xs text-gray-400">{t("charts.monthlyAverage")}</p>
                 <p className="text-sm font-medium text-green-400">
                   {formatCurrencyFull(annualTotals.avgMonthlyIncome)}
                 </p>
               </div>
             </div>
             <div>
-              <p className="text-sm text-gray-400 mb-1">Receitas Totais</p>
+              <p className="text-sm text-gray-400 mb-1">{t("charts.totalIncome")}</p>
               <p className="text-2xl font-bold text-green-400">
                 {formatCurrencyFull(annualTotals.income)}
               </p>
@@ -281,14 +291,14 @@ export function MonthlyAndYearlyCharts({
                 <TrendingDown className="w-5 h-5 text-red-400" />
               </div>
               <div className="text-right">
-                <p className="text-xs text-gray-400">Média mensal</p>
+                <p className="text-xs text-gray-400">{t("charts.monthlyAverage")}</p>
                 <p className="text-sm font-medium text-red-400">
                   {formatCurrencyFull(annualTotals.avgMonthlyExpense)}
                 </p>
               </div>
             </div>
             <div>
-              <p className="text-sm text-gray-400 mb-1">Despesas Totais</p>
+              <p className="text-sm text-gray-400 mb-1">{t("charts.totalExpense")}</p>
               <p className="text-2xl font-bold text-red-400">
                 {formatCurrencyFull(annualTotals.expense)}
               </p>
@@ -327,7 +337,7 @@ export function MonthlyAndYearlyCharts({
                 />
               </div>
               <div className="text-right">
-                <p className="text-xs text-gray-400">Status</p>
+                <p className="text-xs text-gray-400">{t("charts.status")}</p>
                 <p
                   className={`text-sm font-medium ${
                     annualTotals.balance >= 0
@@ -335,12 +345,12 @@ export function MonthlyAndYearlyCharts({
                       : "text-orange-400"
                   }`}
                 >
-                  {annualTotals.balance >= 0 ? "Positivo" : "Negativo"}
+                  {annualTotals.balance >= 0 ? t("charts.positive") : t("charts.negative")}
                 </p>
               </div>
             </div>
             <div>
-              <p className="text-sm text-gray-400 mb-1">Saldo Total</p>
+              <p className="text-sm text-gray-400 mb-1">{t("charts.totalBalance")}</p>
               <p
                 className={`text-2xl font-bold ${
                   annualTotals.balance >= 0
@@ -357,7 +367,7 @@ export function MonthlyAndYearlyCharts({
         {/* Informações adicionais */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-700/50">
           <div className="text-center p-3 bg-gray-800/20 rounded-lg">
-            <p className="text-xs text-gray-400 mb-1">Taxa de Economia</p>
+            <p className="text-xs text-gray-400 mb-1">{t("charts.savingsRate")}</p>
             <p className="text-lg font-bold text-purple-400">
               {annualTotals.income > 0
                 ? ((annualTotals.balance / annualTotals.income) * 100).toFixed(
@@ -368,7 +378,7 @@ export function MonthlyAndYearlyCharts({
             </p>
           </div>
           <div className="text-center p-3 bg-gray-800/20 rounded-lg">
-            <p className="text-xs text-gray-400 mb-1">Projeção Anual</p>
+            <p className="text-xs text-gray-400 mb-1">{t("charts.annualProjection")}</p>
             <p className="text-lg font-bold text-cyan-400">
               {formatCurrencyFull(
                 annualTotals.balance * (12 / annualTotals.monthsElapsed)
