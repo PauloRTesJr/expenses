@@ -6,6 +6,7 @@ import { Input, type InputProps } from "@/components/ui/input";
 import { NumericFormat } from "react-number-format";
 import { Modal } from "@/components/ui/modal";
 import { UserSelector } from "@/components/forms/user-selector";
+import { useLocale } from "@/components/providers/locale-provider";
 
 import { TransactionFormData, TransactionShareInput } from "@/types/database";
 
@@ -30,6 +31,7 @@ export function TransactionForm({
   onSubmit,
   categories,
 }: TransactionFormProps) {
+  const { t } = useLocale();
   const [formData, setFormData] = useState<TransactionFormData>({
     description: "",
     amount: 0,
@@ -82,7 +84,7 @@ export function TransactionForm({
       setShareConfig([]);
       onClose();
     } catch (error) {
-      console.error("Erro ao salvar transação:", error);
+      console.error(t("transaction.errorSaving"), error);
     } finally {
       setIsLoading(false);
     }
@@ -96,7 +98,7 @@ export function TransactionForm({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="New Income/Expense"
+      title={t("transaction.title")}
       size="lg"
     >
       <div className="card-glass">
@@ -105,7 +107,7 @@ export function TransactionForm({
           {/* Transaction Type */}
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-300 mb-3">
-              Transaction Type
+              {t("transaction.type")}
             </label>
             <div className="grid grid-cols-2 gap-3">
               <button
@@ -137,7 +139,7 @@ export function TransactionForm({
                       d="M12 4v16m8-8H4"
                     />
                   </svg>
-                  <span className="font-medium">Income</span>
+                  <span className="font-medium">{t("transaction.income")}</span>
                 </div>
               </button>
               <button
@@ -169,7 +171,7 @@ export function TransactionForm({
                       d="M12 20V4m8 8H4"
                     />
                   </svg>
-                  <span className="font-medium">Expense</span>
+                  <span className="font-medium">{t("transaction.expense")}</span>
                 </div>
               </button>
             </div>
@@ -181,7 +183,7 @@ export function TransactionForm({
               htmlFor="description"
               className="block text-sm font-medium text-gray-300 mb-2"
             >
-              Description *
+              {t("transaction.description")}
             </label>
             <Input
               id="description"
@@ -193,7 +195,7 @@ export function TransactionForm({
                   description: e.target.value,
                 }))
               }
-              placeholder="e.g. Salary, Supermarket"
+              placeholder={t("transaction.descriptionPlaceholder")}
               size="default"
               required
             />
@@ -205,7 +207,7 @@ export function TransactionForm({
               htmlFor="amount"
               className="block text-sm font-medium text-gray-300 mb-2"
             >
-              Amount *
+              {t("transaction.amount")}
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 flex items-center justify-center w-12 pointer-events-none text-gray-400 z-10">
@@ -253,7 +255,7 @@ export function TransactionForm({
               htmlFor="date"
               className="block text-sm font-medium text-gray-300 mb-2"
             >
-              Date *
+              {t("transaction.date")}
             </label>
             <Input
               id="date"
@@ -291,7 +293,7 @@ export function TransactionForm({
               htmlFor="category"
               className="block text-sm font-medium text-gray-300 mb-2"
             >
-              Category
+              {t("transaction.category")}
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 flex items-center justify-center w-12 pointer-events-none text-gray-400">
@@ -320,7 +322,7 @@ export function TransactionForm({
                 }
                 className="w-full h-10 px-3 py-2 text-sm rounded-lg border transition-all duration-200 ease-in-out bg-[rgba(36,43,61,0.85)] backdrop-blur-sm text-white placeholder-gray-400 focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-gray-800/50 hover:border-gray-500 hover:shadow-sm border-gray-600 focus:border-[--accent-primary] focus:shadow-[0_0_0_2px_rgba(102,126,234,0.2)] pl-12 pr-10 appearance-none"
               >
-                <option value="">Select category (optional)</option>
+                <option value="">{t("transaction.selectCategory")}</option>
                 {filteredCategories.map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.name}
@@ -394,7 +396,7 @@ export function TransactionForm({
                 )}
               </div>
               <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">
-                Installment transaction
+                {t("transaction.installmentLabel")}
               </span>
             </label>
           </div>
@@ -403,7 +405,7 @@ export function TransactionForm({
           {formData.is_installment && (
             <div className="mt-3 pl-8">
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Number of installments
+                {t("transaction.installmentCount")}
               </label>
               <Input
                 type="number"
@@ -445,7 +447,7 @@ export function TransactionForm({
               disabled={isLoading}
               className="px-6 py-2.5 text-gray-300 hover:text-white hover:bg-gray-700/50 transition-colors rounded-lg"
             >
-              Cancel
+              {t("transaction.cancel")}
             </Button>
             <Button
               type="submit"
@@ -475,10 +477,10 @@ export function TransactionForm({
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  <span>Saving...</span>
+                  <span>{t("transaction.saving")}</span>
                 </div>
               ) : (
-                <span>Save Transaction</span>
+                <span>{t("transaction.save")}</span>
               )}
             </Button>
           </div>

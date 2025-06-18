@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { searchUsers } from "@/lib/supabase/client";
 import { Profile } from "@/types/database";
+import { useLocale } from "@/components/providers/locale-provider";
 
 interface UserSelectorProps {
   selectedUsers: string[];
@@ -13,6 +14,7 @@ export function UserSelector({
   selectedUsers,
   onUsersChange,
 }: UserSelectorProps) {
+  const { t } = useLocale();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<
     Pick<Profile, "id" | "email" | "full_name">[]
@@ -42,8 +44,8 @@ export function UserSelector({
           setNoResults(results.length === 0);
           setIsDropdownOpen(true);
         } catch (error) {
-          console.error("Erro ao buscar usuários:", error);
-          setError("Erro ao buscar usuários. Tente novamente.");
+          console.error(t("userSelector.error"), error);
+          setError(t("userSelector.error"));
           setSearchResults([]);
           setNoResults(false);
         } finally {
@@ -58,7 +60,7 @@ export function UserSelector({
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [searchQuery]);
+  }, [searchQuery, t]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -127,7 +129,7 @@ export function UserSelector({
   return (
     <div className="space-y-3">
       <label className="block text-sm font-medium text-gray-300">
-        Compartilhar com usuários (opcional)
+        {t("userSelector.label")}
       </label>
 
       {/* Selected Users Tags */}
@@ -155,7 +157,7 @@ export function UserSelector({
                 type="button"
                 onClick={() => handleRemoveUser(user.id)}
                 className="text-blue-300/60 hover:text-red-300 transition-colors p-0.5 rounded-full hover:bg-red-500/20"
-                aria-label={`Remover ${getUserDisplayName(user)}`}
+                aria-label={`${t("userSelector.remove")} ${getUserDisplayName(user)}`}
               >
                 <svg
                   className="w-3 h-3"
@@ -202,7 +204,7 @@ export function UserSelector({
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={handleInputFocus}
             onKeyDown={handleKeyDown}
-            placeholder="Buscar usuários por email ou nome..."
+            placeholder={t("userSelector.placeholder")}
             className="w-full h-12 px-3 py-2 text-sm rounded-lg border transition-all duration-200 ease-in-out bg-[rgba(36,43,61,0.85)] backdrop-blur-sm text-white placeholder-gray-400 focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-gray-800/50 hover:border-gray-500 hover:shadow-sm border-gray-600 focus:border-[--accent-primary] focus:shadow-[0_0_0_2px_rgba(102,126,234,0.2)] pl-12 pr-10"
           />
 
@@ -300,9 +302,9 @@ export function UserSelector({
                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                   />
                 </svg>
-                <p className="text-sm">Nenhum usuário encontrado</p>
+                <p className="text-sm">{t("userSelector.noResults")}</p>
                 <p className="text-xs text-gray-500 mt-1">
-                  Tente buscar por email ou nome
+                  {t("userSelector.trySearch")}
                 </p>
               </div>
             )}
@@ -364,7 +366,7 @@ export function UserSelector({
 
       {/* Help Text */}
       <p className="text-xs text-gray-500">
-        Digite pelo menos 2 caracteres para buscar usuários
+        {t("userSelector.minChars")}
       </p>
     </div>
   );
