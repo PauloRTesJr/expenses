@@ -20,9 +20,7 @@ const LocaleContext = createContext<LocaleContextValue | undefined>(undefined);
 
 export function LocaleProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocale] = useState<Locale>(() => {
-    if (typeof window === "undefined") {
-      return "pt-BR";
-    }
+    if (typeof window === "undefined") return "pt-BR";
     return (window.localStorage.getItem("locale") as Locale) || "pt-BR";
   });
   const changeLocale = (l: Locale) => {
