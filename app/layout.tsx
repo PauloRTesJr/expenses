@@ -33,7 +33,9 @@ function InnerLayout({ children, locale }: { children: React.ReactNode; locale: 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <LocaleProvider>
-      <InnerLayout locale="en">{children}</InnerLayout>
+      <LocaleProvider.Consumer>
+        {({ locale }) => <InnerLayout locale={locale}>{children}</InnerLayout>}
+      </LocaleProvider.Consumer>
     </LocaleProvider>
   );
 }

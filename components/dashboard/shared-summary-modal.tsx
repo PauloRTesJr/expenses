@@ -5,6 +5,7 @@ import { formatCurrency } from "@/lib/utils";
 import { calculateMonthlySharedSummary } from "@/lib/transactions/shared-summary";
 import type { TransactionWithCategoryAndShares } from "@/types/shared-transactions";
 import { Hash } from "lucide-react";
+import { useLocale } from "@/components/providers/locale-provider";
 
 interface SharedSummaryModalProps {
   isOpen: boolean;
@@ -39,6 +40,7 @@ export function SharedSummaryModal({
   currentUserId,
   month,
 }: SharedSummaryModalProps) {
+  const { t } = useLocale();
   const summary = calculateMonthlySharedSummary(
     transactions,
     currentUserId,
@@ -71,7 +73,7 @@ export function SharedSummaryModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Despesas/Receitas Divididas"
+      title={t("sharedModal.title")}
       size="lg"
     >
       <div className="space-y-6">
@@ -85,13 +87,13 @@ export function SharedSummaryModal({
                 {s.userName}
               </p>
               <p className="text-xs text-gray-400">
-                Total Receitas:{" "}
+                {t("sharedModal.totalIncome")}:{" "}
                 <span className="text-emerald-400 font-semibold">
                   {formatCurrency(s.totalIncome)}
                 </span>
               </p>
               <p className="text-xs text-gray-400">
-                Total Despesas:{" "}
+                {t("sharedModal.totalExpense")}:{" "}
                 <span className="text-red-400 font-semibold">
                   {formatCurrency(s.totalExpense)}
                 </span>
@@ -107,11 +109,11 @@ export function SharedSummaryModal({
             >
               {s.balance >= 0 ? (
                 <p className="text-sm text-gray-300 mb-1">
-                  Receber de {s.userName}
+                  {t("sharedModal.receiveFrom")} {s.userName}
                 </p>
               ) : (
                 <p className="text-sm text-gray-300 mb-1">
-                  Pagar para {s.userName}
+                  {t("sharedModal.payTo")} {s.userName}
                 </p>
               )}
               <p
@@ -130,19 +132,19 @@ export function SharedSummaryModal({
               <thead className="bg-[#2a2a2a]">
                 <tr>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                    Descrição
+                    {t("sharedModal.description")}
                   </th>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                    Proprietário
+                    {t("sharedModal.owner")}
                   </th>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                    Parcelas
+                    {t("sharedModal.installments")}
                   </th>
                   <th className="px-4 py-2 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
-                    Valor
+                    {t("sharedModal.amount")}
                   </th>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                    Compartilhado com
+                    {t("sharedModal.sharedWith")}
                   </th>
                 </tr>
               </thead>
@@ -151,23 +153,23 @@ export function SharedSummaryModal({
                   // Format owner display
                   const ownerDisplay =
                     tx.user_id === currentUserId
-                      ? "Você"
+                      ? t("common.you")
                       : tx.owner_profile?.full_name?.split(" ")[0] ||
                         tx.owner_profile?.email?.split("@")[0] ||
-                        "Usuário"; // Format shared users display
+                        t("dashboard.userFallback");
                   const participantNames = tx.transaction_shares
                     .filter((s) => s.status === "accepted")
                     .map((s) => {
-                      // If this share belongs to the current user, show "Você"
+                      // If this share belongs to the current user, show "You"
                       if (s.shared_with_user_id === currentUserId) {
-                        return "Você";
+                        return t("common.you");
                       }
 
                       // Otherwise, show the user's name
                       return (
                         s.profiles.full_name?.split(" ")[0] ||
                         s.profiles.email.split("@")[0] ||
-                        "User"
+                        t("dashboard.userFallback")
                       );
                     });
                   return (
