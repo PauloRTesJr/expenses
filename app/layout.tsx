@@ -30,14 +30,12 @@ function InnerLayout({ children, locale = "pt-BR" }: { children: React.ReactNode
   );
 }
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <LocaleProvider>
-      <InnerLayout>{children}</InnerLayout>
+      <LocaleProvider.Consumer>
+        {({ locale }) => <InnerLayout locale={locale}>{children}</InnerLayout>}
+      </LocaleProvider.Consumer>
     </LocaleProvider>
   );
 }

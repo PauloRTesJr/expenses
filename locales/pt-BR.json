@@ -54,4 +54,38 @@
   "charts.totalBalance": "Saldo Total",
   "charts.savingsRate": "Taxa de Economia",
   "charts.annualProjection": "Projeção Anual"
+  "sharedModal.title": "Despesas/Receitas Divididas",
+  "sharedModal.totalIncome": "Total Receitas",
+  "sharedModal.totalExpense": "Total Despesas",
+  "sharedModal.receiveFrom": "Receber de",
+  "sharedModal.payTo": "Pagar para",
+  "sharedModal.description": "Descrição",
+  "sharedModal.owner": "Proprietário",
+  "sharedModal.installments": "Parcelas",
+  "sharedModal.amount": "Valor",
+  "sharedModal.sharedWith": "Compartilhado com",
+  "common.you": "Você"
+  ,"transaction.title": "Nova Receita/Despesa"
+  ,"transaction.type": "Tipo de Transação"
+  ,"transaction.income": "Receita"
+  ,"transaction.expense": "Despesa"
+  ,"transaction.description": "Descrição *"
+  ,"transaction.descriptionPlaceholder": "ex: Salário, Supermercado"
+  ,"transaction.amount": "Valor *"
+  ,"transaction.date": "Data *"
+  ,"transaction.category": "Categoria"
+  ,"transaction.selectCategory": "Selecionar categoria (opcional)"
+  ,"transaction.installmentLabel": "Transação parcelada"
+  ,"transaction.installmentCount": "Número de parcelas"
+  ,"transaction.cancel": "Cancelar"
+  ,"transaction.save": "Salvar Transação"
+  ,"transaction.saving": "Salvando..."
+  ,"transaction.errorSaving": "Erro ao salvar transação"
+  ,"userSelector.label": "Compartilhar com usuários (opcional)"
+  ,"userSelector.placeholder": "Buscar usuários por email ou nome..."
+  ,"userSelector.noResults": "Nenhum usuário encontrado"
+  ,"userSelector.trySearch": "Tente buscar por email ou nome"
+  ,"userSelector.minChars": "Digite pelo menos 2 caracteres para buscar usuários"
+  ,"userSelector.remove": "Remover"
+  ,"userSelector.error": "Erro ao buscar usuários. Tente novamente."
 }
