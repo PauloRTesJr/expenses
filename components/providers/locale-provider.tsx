@@ -19,15 +19,9 @@ const messages: Record<Locale, Record<string, string>> = {
 const LocaleContext = createContext<LocaleContextValue | undefined>(undefined);
 
 export function LocaleProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocale] = useState<Locale>("pt-BR");
-
-  useEffect(() => {
-    const stored = window.localStorage.getItem("locale") as Locale | null;
-    if (stored) {
-      setLocale(stored);
-    }
-  }, []);
-
+  const [locale, setLocale] = useState<Locale>(() => {
+    return (window.localStorage.getItem("locale") as Locale) || "pt-BR";
+  });
   const changeLocale = (l: Locale) => {
     setLocale(l);
     window.localStorage.setItem("locale", l);
